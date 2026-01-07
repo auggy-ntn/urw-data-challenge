@@ -1,0 +1,10 @@
+[project]
+name = "17-urw-data-challenge"
+version = "0.1.0"
+authors = [{name = "Augustin Naton", email = "augustin.naton@gmail.com"}]
+description = "URW data challenge for the XHEC Data Science and AI for Business course."
+readme = "README.md"
+requires-python = ">=3.13"
+
+
+dependencies = []
