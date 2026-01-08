@@ -14,8 +14,8 @@ Complete setup instructions for new team members to get started with the project
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/auggy-ntn/data-challenge.git
-cd data-challenge
+git clone https://github.com/auggy-ntn/urw-data-challenge.git
+cd urw-data-challenge
 ```
 
 ### 2. Install Dependencies
