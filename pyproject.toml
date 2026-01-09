@@ -23,6 +23,7 @@ dependencies = [
     "loguru>=0.7.3",
     "pandas>=2.3.3",
     "statsmodels>=0.14.6",
+    "networkx>=3.6.1",
 ]
 
 

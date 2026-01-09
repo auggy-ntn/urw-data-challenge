@@ -12,6 +12,7 @@ dependencies = [
     { name = "loguru" },
     { name = "pandas" },
     { name = "statsmodels" },
+    { name = "networkx" },
 ]
 
 [package.dev-dependencies]
@@ -32,6 +33,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "statsmodels", specifier = ">=0.14.6" },
+    { name = "networkx", specifier = ">=3.6.1" },
 ]
 
 [package.metadata.requires-dev]
