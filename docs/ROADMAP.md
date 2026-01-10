@@ -14,18 +14,34 @@ The primary deliverable is a **robust analytical approach** with clear justifica
 
 ---
 
+## Our Approach
+
+### Core Deliverables
+
+1. **KPI Dashboard**: Interactive visualization showing:
+   - **Mall-level KPIs**: Average dwell time, foot traffic, average money spent, average SRI score
+   - **Store-level KPIs**: OCR (Occupancy Cost Ratio), average dwell time, capture rate, sales per sqm
+
+2. **Optimal Tenant Mix Model**: Given an empty mall profile (total GLA, number of blocks, location), determine the ideal tenant composition that maximizes our composite performance metric
+
+3. **Impact Simulation Model**: Compute the effect of adding or removing a store on mall performance and neighboring stores
+
+4. **Pareto Optimization (Stretch Goal)**: Multi-objective optimization showing trade-offs between metrics rather than a single composite score (e.g., "this mix optimizes X but costs Y on metric Z")
+
+### Key Design Decision: Retailer-Level Synergy
+
+We compute synergy metrics at the **retailer level** (using `retailer_code` from `fact_stores`), not physical store level. This allows us to:
+- Generalize patterns across malls
+- Recommend retailer types rather than specific store instances
+- Build transferable models for empty mall profiles
+
+---
+
 ## KPIs and Metrics Framework
 
-### Mall-Level Performance Metrics
+### Store-Level Metrics (Dashboard)
 
-| Metric | Description | Data Source |
-|--------|-------------|-------------|
-| **Total Footfall** | Daily/monthly visitor count | `fact_malls_v1.people_in` |
-| **Dwell Time** | Average time spent in mall | `fact_malls_v1.average_dwell_time` |
-| **Sales Density** | Total sales / Total GLA | `store_financials_v1`, `dim_blocks_v1` |
-| **Occupancy Rate** | Leased GLA / Total GLA | `dim_blocks_v1` |
-
-### Store-Level Performance Metrics
+Individual store performance metrics displayed in the dashboard for drill-down analysis.
 
 | Metric | Description | Data Source |
 |--------|-------------|-------------|
@@ -36,136 +52,195 @@ The primary deliverable is a **robust analytical approach** with clear justifica
 | **Cross-Visit Index** | Avg co-visits with other stores | `cross_visits_v1` |
 | **Sustainability Score** | SRI rating | `fact_sri_scores_v1.sri_score` |
 
-### Retail Mix Quality Metrics
+### Mall-Level Metrics (Dashboard & Optimization)
+
+Mall-level metrics come from two sources:
+1. **Direct metrics**: Measured at the mall level
+2. **Aggregated metrics**: Store-level metrics rolled up to mall level
+
+#### Direct Mall Metrics
+
+| Metric | Description | Data Source |
+|--------|-------------|-------------|
+| **Total Footfall** | Daily/monthly visitor count | `fact_malls_v1.people_in` |
+| **Mall Dwell Time** | Average time spent in mall | `fact_malls_v1.average_dwell_time` |
+| **Occupancy Rate** | Leased GLA / Total GLA | `dim_blocks_v1` |
+
+#### Aggregated from Store Metrics
+
+| Mall Metric | Aggregation Method | Source Store Metric |
+|-------------|-------------------|---------------------|
+| **Avg Sales Density** | Mean of store sales/sqm | Sales per sqm |
+| **Avg OCR** | Mean (or GLA-weighted) | OCR |
+| **% Healthy Tenants** | % stores with OCR < threshold | OCR |
+| **Avg SRI Score** | Mean (or GLA-weighted) | SRI score |
+| **Avg Capture Rate** | Mean across stores | Capture rate |
+
+### Retail Mix Quality Metrics (Mall-Level)
+
+These metrics characterize the tenant mix composition.
 
 | Metric | Description | Purpose |
 |--------|-------------|---------|
 | **Category Diversity Index** | Shannon entropy of BL1/BL2 categories | Measure tenant variety |
 | **Anchor-Satellite Ratio** | Large stores vs small/medium | Balance of traffic drivers |
-| **Synergy Score** | Aggregate cross-visit strength | Measure tenant complementarity |
+| **Synergy Score** | Aggregate cross-visit strength of tenant mix | Measure tenant complementarity |
 | **Sustainability Mix Score** | Weighted avg SRI of tenant base | ESG readiness |
 
+### Mall-Level Composite Score (Optimization Objective)
+
+The optimization model maximizes a **mall-level composite score** that combines:
+
+```
+Composite Score = w1 * Revenue Component
+                + w2 * Traffic Component
+                + w3 * Tenant Health Component
+                + w4 * Synergy Component
+                + w5 * Sustainability Component
+                + w6 * Diversity Component
+```
+
+| Component | Built From | Notes |
+|-----------|-----------|-------|
+| **Revenue** | Avg sales density, total sales | Primary business metric |
+| **Traffic** | Footfall, mall dwell time | Visitor engagement |
+| **Tenant Health** | Avg OCR, % healthy tenants | Financial sustainability of tenants |
+| **Synergy** | Aggregate cross-visit strength | How well tenants complement each other |
+| **Sustainability** | Avg SRI score | ESG alignment |
+| **Diversity** | Category entropy | Risk mitigation through variety |
+
+Weights (w1-w6) can be adjusted based on URW's strategic priorities.
+
 ---
 
-## Phase 1: Data Foundation & Exploration
+## Phase 1: Data Foundation & Exploration (COMPLETED)
 
 ### 1.1 Data Ingestion & Quality Assessment
-- Load all datasets and verify schema against data dictionary
-- Profile data: missing values, outliers, distributions
-- Validate joins between tables (store_code, mall_id)
-- Document data quality issues and coverage gaps
+- [x] Load all datasets and verify schema against data dictionary
+- [x] Profile data: missing values, outliers, distributions
+- [x] Validate joins between tables (store_code, mall_id)
+- [x] Document data quality issues and coverage gaps
 
 ### 1.2 Exploratory Data Analysis (EDA)
-- **Mall profiles**: Compare Vélizy 2, Parly 2, Euralille on size, footfall, category mix
-- **Temporal patterns**: Day-of-week, seasonality in footfall and sales
-- **Category analysis**: Performance by BL1/BL2/BL3 categories
-- **Store size analysis**: Performance differences by GLA category
-- **Financial health**: Distribution of OCR, identify over/under-performers
+- [x] **Mall profiles**: Compare Vélizy 2, Parly 2, Euralille on size, footfall, category mix
+- [x] **Temporal patterns**: Day-of-week, seasonality in footfall (autocorrelation analysis)
+- [x] **Category analysis**: Distribution by BL1/BL2/BL3 categories per mall
+- [x] **Store counts**: Number of retailers and categories per mall
 
 ### Deliverables
-- Data quality report
-- EDA notebook with visualizations
-- Initial insights presentation
+- [x] EDA notebook (`notebooks/eda.ipynb`)
 
 ---
 
-## Phase 2: Store Performance Modeling
+## Phase 2: Synergy Metric Development (IN PROGRESS)
 
-### 2.1 Store Performance Scoring
-Build a composite performance score combining:
-- Sales efficiency (sales per sqm)
-- Traffic conversion (capture rate)
-- Engagement (dwell time)
-- Financial health (inverse of OCR)
-- Sustainability (SRI score)
-
-### 2.2 Performance Drivers Analysis
-- Regression models: What factors predict store performance?
-  - Location (floor, zone, proximity to anchors)
-  - Category
-  - Store size
-  - Neighboring stores
-- Identify underperforming stores relative to their category benchmarks
-
-### Deliverables
-- Store performance scoring methodology
-- Feature importance analysis
-- Underperformer identification framework
-
----
-
-## Phase 3: Tenant Synergy Analysis
-
-### 3.1 Cross-Visit Network Analysis
-- Build store co-visitation graph from `cross_visits_v1`
-- Compute network metrics:
+### 2.1 Cross-Visit Network Analysis
+- [ ] Build retailer co-visitation graph from `cross_visits_v1`
+- [ ] Aggregate cross-visits by retailer (not physical store)
+- [ ] Compute network metrics:
   - Degree centrality (traffic hubs)
-  - Betweenness centrality (bridge stores)
-  - Community detection (natural store clusters)
-- Identify high-synergy store pairs/groups
+  - Betweenness centrality (bridge retailers)
+  - Community detection (natural retailer clusters)
 
-### 3.2 Category Affinity Matrix
-- Aggregate cross-visits by BL2/BL3 categories
-- Build category affinity heatmap
-- Identify complementary vs. competing categories
-- Quantify cannibalization risk between similar retailers
+### 2.2 Synergy Score Computation
+- [ ] Define pairwise synergy between retailers based on cross-visits
+- [ ] Normalize by store traffic to avoid size bias
+- [ ] Create retailer affinity matrix
+- [ ] Aggregate to category level (BL2/BL3) for pattern identification
 
-### 3.3 Anchor Effect Analysis
-- Measure traffic spillover from large stores (anchors)
-- Quantify the "halo effect" on nearby smaller stores
-- Model anchor removal scenarios
+### 2.3 Category Affinity Analysis
+- [ ] Build category affinity heatmap
+- [ ] Identify complementary vs. competing categories
+- [ ] Quantify cannibalization risk between similar retailers
 
 ### Deliverables
-- Synergy network visualization
-- Category affinity matrix
-- Anchor impact quantification
+- [ ] Synergy metric notebook (`notebooks/synergy.ipynb`)
+- [ ] Retailer affinity matrix
+- [ ] Category-level synergy patterns
 
 ---
 
-## Phase 4: Retail Mix Optimization Framework
+## Phase 3: Mall-Level Composite Score
 
-### 4.1 Define Optimization Objectives
-Multi-objective optimization balancing:
-1. **Revenue maximization**: Total mall sales
-2. **Traffic optimization**: Footfall and dwell time
-3. **Tenant health**: Minimize OCR across tenants
-4. **Diversity**: Maintain category balance
-5. **Sustainability**: Improve average SRI score
+### 3.1 Store Metric Computation
+Compute store-level metrics for all stores:
+- [ ] Sales per sqm (join `store_financials` with `dim_blocks`)
+- [ ] OCR (from `store_financials`)
+- [ ] Capture rate (from `fact_stores`)
+- [ ] Store dwell time (from `fact_stores`)
+- [ ] SRI score (from `fact_sri_scores`)
 
-### 4.2 Constraint Definition
-- Total GLA constraint per mall
-- Minimum/maximum stores per category (avoid over-concentration)
-- Anchor store requirements
-- Sustainability targets
+### 3.2 Mall-Level Aggregation
+Roll up store metrics to mall level:
+- [ ] Define aggregation methods (mean, weighted mean, percentiles)
+- [ ] Compute direct mall metrics (footfall, dwell time)
+- [ ] Compute aggregated metrics (avg OCR, avg sales density, etc.)
+- [ ] Compute mix quality metrics (diversity index, synergy score)
 
-### 4.3 Simulation Engine
-Build a simulator to answer "what-if" questions:
-- **Tenant addition**: Predict impact of adding a new category/retailer
+### 3.3 Composite Score Definition
+- [ ] Normalize all components to comparable scales (0-1 or z-scores)
+- [ ] Define initial weights for each component
+- [ ] Validate composite score against intuition (do "good" malls score high?)
+- [ ] Sensitivity analysis on weight choices
+
+### 3.4 Store-Level Benchmarking (Dashboard Support)
+- [ ] Normalize store metrics within categories for fair comparison
+- [ ] Identify over/under-performers relative to category benchmarks
+- [ ] Flag stores contributing negatively to mall composite
+
+### Deliverables
+- [ ] Mall composite score methodology
+- [ ] Store benchmarking for dashboard
+
+---
+
+## Phase 4: Optimization Framework
+
+### 4.1 Mall Profile Definition
+A mall profile consists of:
+- **Total GLA**: Total leasable area
+- **Number of blocks**: Available store slots
+- **Location**: Country/region (affects category preferences)
+
+### 4.2 Tenant Mix Optimization Model
+Given a mall profile, optimize:
+- **Objective**: Maximize composite performance metric
+- **Decision variables**: Number of stores per category (BL2 level)
+- **Constraints**:
+  - Total GLA constraint
+  - Min/max stores per category
+  - Anchor store requirements
+  - Category diversity minimum
+
+### 4.3 Impact Simulation Engine
+For existing malls, simulate:
+- **Tenant addition**: Predict impact on overall mall performance and synergy
 - **Tenant removal**: Estimate traffic/sales loss and redistribution
-- **Tenant relocation**: Model proximity effects
-- **Category rebalancing**: Simulate shift from one category to another
+- **Tenant swap**: Model replacement of one retailer type with another
 
-### 4.4 Recommendation Engine
-- Given a mall profile, recommend:
-  - Optimal category mix (% GLA per BL1/BL2)
-  - High-potential tenant additions
-  - Underperformers to consider replacing
-  - Relocation opportunities for synergy gains
+### 4.4 Pareto Optimization (Stretch Goal)
+Multi-objective optimization across:
+1. Revenue (total sales)
+2. Traffic (footfall)
+3. Sustainability (SRI)
+4. Diversity (category entropy)
+
+Output: Pareto frontier showing optimal trade-offs
 
 ### Deliverables
-- Optimization model specification
-- Simulation engine (Python module)
-- Recommendation logic with explainability
+- [ ] Optimization model specification
+- [ ] Simulation engine (Python module)
+- [ ] Pareto frontier visualization (if time permits)
 
 ---
 
-## Phase 5: Visualization & Delivery
+## Phase 5: Dashboard & Delivery
 
-### 5.1 Streamlit Dashboard (Bonus)
+### 5.1 Streamlit Dashboard
 Interactive application with:
 - **Mall Overview**: KPIs, category breakdown, sustainability score
-- **Store Explorer**: Performance metrics, cross-visit network
-- **What-If Simulator**: Add/remove/relocate tenants
+- **Store Explorer**: Performance metrics, synergy network
+- **What-If Simulator**: Add/remove tenants and see impact
 - **Recommendations Panel**: Suggested optimizations with rationale
 
 ### 5.2 Final Presentation
@@ -176,72 +251,52 @@ Interactive application with:
 - Limitations and future directions
 
 ### Deliverables
-- Streamlit app
-- Presentation deck
-- Technical documentation
+- [ ] Streamlit app
+- [ ] Presentation deck
+- [ ] Technical documentation
 
 ---
 
-## Suggested Timeline (2 Weeks)
+## Technical Approach
 
-| Days | Phase | Focus |
-|------|-------|-------|
-| 1-2 | Phase 1 | Data loading, quality checks, initial EDA |
-| 3-4 | Phase 1-2 | Complete EDA, begin performance modeling |
-| 5-6 | Phase 2-3 | Performance scoring, network analysis |
-| 7-8 | Phase 3 | Synergy analysis, category affinity |
-| 9-10 | Phase 4 | Optimization framework, simulation engine |
-| 11-12 | Phase 4-5 | Recommendations, Streamlit dashboard |
-| 13-14 | Phase 5 | Polish deliverables, prepare presentation |
+### Graph Analysis (Phase 2)
+- NetworkX for co-visitation graph
+- Community detection (Louvain algorithm)
+- Centrality measures for retailer importance
 
----
-
-## Technical Approach Options
-
-The brief explicitly encourages combining multiple techniques:
-
-### Machine Learning
+### Machine Learning (Phase 3)
 - Regression for performance prediction
-- Clustering for store/mall segmentation
-- Time series for trend forecasting
+- Clustering for retailer segmentation
 
-### Network Analysis
-- Graph-based synergy modeling
-- Community detection for natural store groupings
-- Centrality measures for anchor identification
-
-### Optimization
+### Optimization (Phase 4)
 - Linear/Mixed Integer Programming for GLA allocation
-- Multi-objective optimization for balancing KPIs
+- Multi-objective optimization (NSGA-II) for Pareto frontier
 - Constraint satisfaction for feasibility
 
-### Simulation
-- Monte Carlo for uncertainty quantification
-- Agent-based modeling for visitor flow
-- Scenario analysis for strategic planning
-
-### Generative AI (Optional)
-- LLM-assisted trend analysis from external data
-- Natural language recommendations
+### Visualization (Phase 5)
+- Plotly for interactive charts
+- Streamlit for dashboard
+- NetworkX + Plotly for synergy network visualization
 
 ---
 
-## Sustainability Integration (Bonus)
+## Data Mapping
 
-Incorporate sustainability throughout:
+### Key Joins
 
-1. **Current State Assessment**
-   - Analyze SRI score distribution across malls
-   - Identify sustainability leaders/laggards by category
+```
+dim_blocks.store_code -> fact_stores.store_code
+dim_blocks.store_code -> store_financials.codestr
+dim_blocks.store_code -> fact_sri_scores.store_code
+dim_blocks.store_code -> cross_visits.store_code_1 / store_code_2
+dim_blocks.mall_id -> fact_malls.mall_id
+dim_blocks.mall_id -> dim_malls.id
+```
 
-2. **Sustainability-Aware Optimization**
-   - Add SRI improvement as an objective
-   - Penalize low-SRI tenant additions
-   - Model sustainability improvement trajectories
-
-3. **Reporting**
-   - Sustainability dashboard panel
-   - ESG-aligned recommendations
+### Retailer Aggregation
+For synergy analysis, aggregate from `store_code` to `retailer_code`:
+- Cross-visits: Sum visits between all stores of retailer pairs
+- Performance: Average metrics across retailer's stores
 
 ---
 
@@ -250,9 +305,9 @@ Incorporate sustainability throughout:
 | Risk | Mitigation |
 |------|------------|
 | Incomplete financial data | Use available stores as benchmarks; impute by category |
-| Cross-visit data sparsity | Aggregate to category level for robust patterns |
-| Limited mall sample (3 malls) | Focus on transferable methodology over mall-specific results |
-| Short timeframe | Prioritize framework design over polish |
+| Cross-visit data sparsity | Aggregate to retailer/category level for robust patterns |
+| Limited mall sample (3 named malls) | Focus on transferable methodology over mall-specific results |
+| Short timeframe | Prioritize core deliverables; Pareto optimization is stretch goal |
 
 ---
 
@@ -268,8 +323,8 @@ The solution will be evaluated on:
 
 ---
 
-## Next Steps
+## Current Status
 
-1. Pull data with `dvc pull`
-2. Create initial EDA notebook
-3. Begin Phase 1 data profiling
+- **Phase 1**: COMPLETED - EDA notebook done
+- **Phase 2**: IN PROGRESS - Synergy metric development started
+- **Phase 3-5**: PENDING
