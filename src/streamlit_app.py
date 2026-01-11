@@ -353,21 +353,27 @@ def render_store_ranking(stores: list, metric_name: str):
 # =============================================================================
 
 
+LOGO_PATH = "assets/URW.PA.png"
+
+
 def page_main_dashboard():
     """Main dashboard showing all malls overview."""
     # Header with URW branding
+    col_logo, col_title = st.columns([1, 5])
+    with col_logo:
+        st.image(LOGO_PATH, width=80)
+    with col_title:
+        st.markdown(
+            """
+            <h1 style="margin: 0; padding-top: 10px;">Mall Analytics</h1>
+            <p class="subtitle" style="margin: 0;">
+                Real-time performance insights across your portfolio
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
     st.markdown(
-        """
-        <div class="urw-header">
-            <span class="urw-logo">URW</span>
-            <div>
-                <h1 style="margin: 0; padding: 0;">Mall Analytics</h1>
-            </div>
-        </div>
-        <p class="subtitle">
-            Real-time performance insights across your portfolio
-        </p>
-        """,
+        f'<hr style="border-color: {URW_COLORS["accent"]}; margin: 20px 0;">',
         unsafe_allow_html=True,
     )
 
@@ -419,16 +425,19 @@ def page_mall_detail():
         st.rerun()
 
     # Mall header
+    col_logo, col_title = st.columns([1, 5])
+    with col_logo:
+        st.image(LOGO_PATH, width=80)
+    with col_title:
+        st.markdown(
+            f"""
+            <h1 style="margin: 0; padding-top: 10px;">{mall["name"]}</h1>
+            <p class="subtitle" style="margin: 0;">{mall["city"]}, {mall["country"]}</p>
+            """,
+            unsafe_allow_html=True,
+        )
     st.markdown(
-        f"""
-        <div class="urw-header">
-            <span class="urw-logo">W</span>
-            <div>
-                <h1 style="margin: 0; padding: 0;">{mall["name"]}</h1>
-            </div>
-        </div>
-        <p class="subtitle">{mall["city"]}, {mall["country"]}</p>
-        """,
+        f'<hr style="border-color: {URW_COLORS["accent"]}; margin: 20px 0;">',
         unsafe_allow_html=True,
     )
 
@@ -508,23 +517,36 @@ def main():
         st.session_state.page = "main"
     if "selected_mall" not in st.session_state:
         st.session_state.selected_mall = None
+    if "sidebar_collapsed" not in st.session_state:
+        st.session_state.sidebar_collapsed = False
 
-    # Sidebar navigation
-    with st.sidebar:
-        # URW Logo
+    # Inject JS to collapse sidebar if requested
+    if st.session_state.sidebar_collapsed:
         st.markdown(
-            f"""
-            <div style="text-align: center; padding: 20px 0;">
-                <div style="color: {URW_COLORS["accent"]}; font-size: 3rem;
-                            font-weight: bold; font-style: italic;">W</div>
-                <div style="color: {URW_COLORS["text"]}; font-size: 0.7rem;
-                            letter-spacing: 2px; margin-top: 10px;">
-                    UNIBAIL-RODAMCO-WESTFIELD
-                </div>
-            </div>
+            """
+            <script>
+                var sidebar = window.parent.document.querySelector(
+                    '[data-testid="stSidebar"]'
+                );
+                if (sidebar) {
+                    var closeBtn = sidebar.querySelector('button[kind="header"]');
+                    if (closeBtn) closeBtn.click();
+                }
+            </script>
             """,
             unsafe_allow_html=True,
         )
+        st.session_state.sidebar_collapsed = False
+
+    # Sidebar navigation
+    with st.sidebar:
+        # Collapse button at top
+        if st.button("Close Sidebar", use_container_width=True, key="collapse_sidebar"):
+            st.session_state.sidebar_collapsed = True
+            st.rerun()
+
+        # URW Logo
+        st.image(LOGO_PATH, use_container_width=True)
         st.markdown("---")
 
         if st.button("Dashboard", use_container_width=True):
