@@ -1,0 +1,31 @@
+# DVC Pipeline Configuration
+# Define your data processing stages here
+# Each stage runs a command and tracks dependencies and outputs
+
+# To run the pipeline: dvc repro
+# To visualize: dvc dag
+
+stages:
+  # Stage 1: Convert raw data to intermediate format
+  raw_to_intermediate:
+    cmd: uv run python3 src/data_pipelines/raw_to_intermediate.py
+    deps:
+      - src/data_pipelines/raw_to_intermediate.py
+      - data/raw/dim_malls_v1.csv
+      - data/raw/dim_blocks_v1.csv
+      - data/raw/fact_stores_v1.csv
+      - data/raw/fact_malls_v1.csv
+      - data/raw/store_financials_v1.csv
+      - data/raw/cross_visits_v1.csv
+      - data/raw/fact_sri_scores_v1.csv
+
+    outs:
+      - data/intermediate/dim_malls.csv
+      - data/intermediate/dim_blocks.csv
+      - data/intermediate/fact_stores.csv
+      - data/intermediate/fact_malls.csv
+      - data/intermediate/store_financials.csv
+      - data/intermediate/cross_visits.csv
+      - data/intermediate/fact_sri_scores.csv
+
+  # Additional stages can be defined here

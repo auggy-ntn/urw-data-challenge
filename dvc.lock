@@ -1,0 +1,66 @@
+schema: '2.0'
+stages:
+  raw_to_intermediate:
+    cmd: uv run python3 src/data_pipelines/raw_to_intermediate.py
+    deps:
+    - path: data/raw/cross_visits_v1.csv
+      hash: md5
+      md5: ba63e20bbf750e9baa89a06bddccc15e
+      size: 5976716
+    - path: data/raw/dim_blocks_v1.csv
+      hash: md5
+      md5: 4d710c1a5a6c959479f33d3b0d063e5d
+      size: 425486
+    - path: data/raw/dim_malls_v1.csv
+      hash: md5
+      md5: 77a8be84bc993d5fb32358ced94c2490
+      size: 664
+    - path: data/raw/fact_malls_v1.csv
+      hash: md5
+      md5: 829c1fbe5a7206109c807e7552845843
+      size: 326275
+    - path: data/raw/fact_sri_scores_v1.csv
+      hash: md5
+      md5: d7c7058a4f66bbf30127d6e8c2083b47
+      size: 28568
+    - path: data/raw/fact_stores_v1.csv
+      hash: md5
+      md5: 38629fea0c79eb44eaa5a894b26eeb4f
+      size: 90134129
+    - path: data/raw/store_financials_v1.csv
+      hash: md5
+      md5: 70b5874f90776eee6b189ec81936a1c6
+      size: 380919
+    - path: src/data_pipelines/raw_to_intermediate.py
+      hash: md5
+      md5: c435ba892cf17838f957e3e65259d961
+      size: 5939
+    outs:
+    - path: data/intermediate/cross_visits.csv
+      hash: md5
+      md5: 492279479f0a11c300a401f869690927
+      size: 5697658
+    - path: data/intermediate/dim_blocks.csv
+      hash: md5
+      md5: d0d1b8213f90018950c4f0cd2dafe24f
+      size: 422796
+    - path: data/intermediate/dim_malls.csv
+      hash: md5
+      md5: 595a9f7274ae570afe80a56f8e16a265
+      size: 642
+    - path: data/intermediate/fact_malls.csv
+      hash: md5
+      md5: 4f96982f187844db9fad50313490c926
+      size: 348129
+    - path: data/intermediate/fact_sri_scores.csv
+      hash: md5
+      md5: 805350eee9b3f5988964236fb64175ce
+      size: 27120
+    - path: data/intermediate/fact_stores.csv
+      hash: md5
+      md5: 686809fe74031effad860c369e088f77
+      size: 89693445
+    - path: data/intermediate/store_financials.csv
+      hash: md5
+      md5: 46cddcd1b4a063eb9cad9e93a018a52d
+      size: 368829
