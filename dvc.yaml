@@ -6,7 +6,7 @@
 # To visualize: dvc dag
 
 stages:
-  # Stage 1: Convert raw data to intermediate format
+  # Stage 1: Convert raw data to intermediate format (clean names and dtypes)
   raw_to_intermediate:
     cmd: uv run python3 src/data_pipelines/raw_to_intermediate.py
     deps:
@@ -28,4 +28,12 @@ stages:
       - data/intermediate/cross_visits.csv
       - data/intermediate/fact_sri_scores.csv
 
-  # Additional stages can be defined here
+  # Stage 2: Enrich intermediate data with additional information
+  intermediate_to_enriched:
+    cmd: uv run python3 src/data_pipelines/intermediate_to_enriched.py
+    deps:
+      - src/data_pipelines/intermediate_to_enriched.py
+      - data/intermediate/cross_visits.csv
+      - data/intermediate/dim_blocks.csv
+    outs:
+      - data/enriched/cross_visits_enriched.csv

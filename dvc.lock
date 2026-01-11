@@ -64,3 +64,23 @@ stages:
       hash: md5
       md5: 46cddcd1b4a063eb9cad9e93a018a52d
       size: 368829
+  intermediate_to_enriched:
+    cmd: uv run python3 src/data_pipelines/intermediate_to_enriched.py
+    deps:
+    - path: data/intermediate/cross_visits.csv
+      hash: md5
+      md5: 492279479f0a11c300a401f869690927
+      size: 5697658
+    - path: data/intermediate/dim_blocks.csv
+      hash: md5
+      md5: d0d1b8213f90018950c4f0cd2dafe24f
+      size: 422796
+    - path: src/data_pipelines/intermediate_to_enriched.py
+      hash: md5
+      md5: ca4da2975fa06a39f482c679626ed4a0
+      size: 3609
+    outs:
+    - path: data/enriched/cross_visits_enriched.csv
+      hash: md5
+      md5: ed9368c41c5855fd9cecbbb35c306fe6
+      size: 43343079

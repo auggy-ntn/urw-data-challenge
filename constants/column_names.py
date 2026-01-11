@@ -117,3 +117,10 @@ CROSS_VISITS_COLUMNS = [
 
 
 ########## INTERMEDIATE DATA COLUMN NAMES ##########
+
+
+########## ENRICHED DATA COLUMN NAMES ##########
+
+# cross_visits_enriched
+SUFFIX_STORE_1 = "_1"
+SUFFIX_STORE_2 = "_2"
