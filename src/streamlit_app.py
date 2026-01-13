@@ -361,13 +361,13 @@ def page_main_dashboard():
     # Header with URW branding
     col_logo, col_title = st.columns([1, 5])
     with col_logo:
-        st.image(LOGO_PATH, width=80)
+        st.image(LOGO_PATH, use_container_width=True)
     with col_title:
         st.markdown(
             """
             <h1 style="margin: 0; padding-top: 10px;">Mall Analytics</h1>
             <p class="subtitle" style="margin: 0;">
-                Real-time performance insights across your portfolio
+                URW Data Challenge Dashboard
             </p>
             """,
             unsafe_allow_html=True,
@@ -378,7 +378,7 @@ def page_main_dashboard():
     )
 
     # Portfolio-level KPIs
-    st.subheader("Portfolio Overview")
+    st.subheader("Mall Overview")
     kpis = get_mall_kpis()  # Aggregate KPIs
 
     col1, col2, col3, col4 = st.columns(4)
@@ -427,7 +427,7 @@ def page_mall_detail():
     # Mall header
     col_logo, col_title = st.columns([1, 5])
     with col_logo:
-        st.image(LOGO_PATH, width=80)
+        st.image(LOGO_PATH, use_container_width=True)
     with col_title:
         st.markdown(
             f"""
@@ -517,34 +517,8 @@ def main():
         st.session_state.page = "main"
     if "selected_mall" not in st.session_state:
         st.session_state.selected_mall = None
-    if "sidebar_collapsed" not in st.session_state:
-        st.session_state.sidebar_collapsed = False
-
-    # Inject JS to collapse sidebar if requested
-    if st.session_state.sidebar_collapsed:
-        st.markdown(
-            """
-            <script>
-                var sidebar = window.parent.document.querySelector(
-                    '[data-testid="stSidebar"]'
-                );
-                if (sidebar) {
-                    var closeBtn = sidebar.querySelector('button[kind="header"]');
-                    if (closeBtn) closeBtn.click();
-                }
-            </script>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.session_state.sidebar_collapsed = False
-
     # Sidebar navigation
     with st.sidebar:
-        # Collapse button at top
-        if st.button("Close Sidebar", use_container_width=True, key="collapse_sidebar"):
-            st.session_state.sidebar_collapsed = True
-            st.rerun()
-
         # URW Logo
         st.image(LOGO_PATH, use_container_width=True)
         st.markdown("---")
