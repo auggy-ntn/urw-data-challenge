@@ -117,3 +117,12 @@ CROSS_VISITS_COLUMNS = [
 
 
 ########## INTERMEDIATE DATA COLUMN NAMES ##########
+
+
+########## ENRICHED DATA COLUMN NAMES ##########
+
+# category_affinities
+CATEGORY_A = "cat_A"
+CATEGORY_B = "cat_B"
+AFFINITY = "avg_jaccard_strength"
+NB_PAIRS = "nb_pairs"
