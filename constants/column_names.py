@@ -126,3 +126,16 @@ CATEGORY_A = "cat_A"
 CATEGORY_B = "cat_B"
 AFFINITY = "avg_jaccard_strength"
 NB_PAIRS = "nb_pairs"
+
+
+########## MODEL FEATURES COLUMN NAMES ##########
+MODEL_STORE_GLA = "gla"
+MODEL_STORE_GLA_CAT = "gla_category"
+MODEL_STORE_CATEGORY = "store_category"
+MODEL_STORE_AVG_WINDOW_FLOW = "avg_window_flow"
+MODEL_STORE_MEDIAN_WINDOW_FLOW = "median_window_flow"
+MODEL_STORE_NEIGHBORHOOD_SYNERGY = "neighborhood_synergy"
+MODEL_STORE_NB_NEIGHBORS = "nb_neighbors"
+MODEL_MALL_TOTAL_GLA = "mall_total_gla"
+MODEL_MALL_STORE_COUNT = "mall_store_count"
+MODEL_MALL_CATEGORY_SHARE = "mall_category_share"
