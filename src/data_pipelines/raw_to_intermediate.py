@@ -109,9 +109,15 @@ def clean_store_financials(store_financials: pd.DataFrame) -> pd.DataFrame:
     """
     # Rename columns
     store_financials.columns = cols.STORE_FINANCIALS_COLUMNS
+    store_financials.rename(columns={cols.CODSTR: cols.STORE_CODE}, inplace=True)
 
     # Drop duplicates
     store_financials = store_financials.drop_duplicates()
+
+    # Replace invalid values with NaN
+    store_financials[cols.SALES_R12M] = pd.to_numeric(
+        store_financials[cols.SALES_R12M], errors="coerce"
+    )
 
     return store_financials
 
