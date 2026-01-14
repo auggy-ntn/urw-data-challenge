@@ -1,19 +1,7 @@
-import os
-
 import pandas as pd
 
-# 1. Load Data
-try:
-    cross_visits = pd.read_csv("data/intermediate/cross_visits.csv")
-    dim_blocks = pd.read_csv("data/intermediate/dim_blocks.csv")
-    print("Data loaded successfully.")
-except FileNotFoundError as e:
-    print(f"Error loading files: {e}")
-    print("Please check your current working directory and file paths.")
-    exit()
 
-
-# 2. Define Jaccard Calculation Function
+# 1. Define Jaccard Calculation Function
 def calculate_jaccard(df):
     """Calculates the Jaccard Similarity Index based solely on cross-visit volume."""
     # Create a copy to avoid SettingWithCopy warnings on the original dataframe
@@ -53,7 +41,7 @@ def calculate_jaccard(df):
     return df.sort_values(by="jaccard_score", ascending=False)
 
 
-# 3. Define Category Affinity Function
+# 2. Define Category Affinity Function
 def calculate_category_affinity(jaccard_df, dim_block_df):
     """Aggregates store-to-store Jaccard scores into category-to-category affinities."""
     # Merge Category for Store 1
@@ -107,22 +95,8 @@ def calculate_category_affinity(jaccard_df, dim_block_df):
     ].sort_values(by="avg_jaccard_strength", ascending=False)
 
 
-# 4. Execution Pipeline
-if __name__ == "__main__":
-    print("Calculating Store Jaccard Scores...")
-    jaccard_results = calculate_jaccard(cross_visits)
-
-    print("Calculating Category Affinity...")
-    affinity_results = calculate_category_affinity(jaccard_results, dim_blocks)
-
-    # 5. Save Output
-    output_path = "data/intermediate/category_affinity.csv"
-
-    # Ensure directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-    affinity_results.to_csv(output_path, index=False)
-
-    print(f"Success! File saved to: {output_path}")
-    print("\nTop 5 Category Affinities found:")
-    print(affinity_results.head(5))
+def create_affinity_results(cross_visits_df, dim_block_df):
+    """Wrapper function to create category affinity results from cross-visit data."""
+    jaccard_results = calculate_jaccard(cross_visits_df)
+    affinity_results = calculate_category_affinity(jaccard_results, dim_block_df)
+    return affinity_results

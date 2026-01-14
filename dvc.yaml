@@ -28,4 +28,15 @@ stages:
       - data/intermediate/cross_visits.csv
       - data/intermediate/fact_sri_scores.csv
 
+  # Stage 2: Convert intermediate data to enriched format
+  intermediate_to_enriched:
+    cmd: uv run python3 src/data_pipelines/intermediate_to_enriched.py
+    deps:
+      - src/data_pipelines/intermediate_to_enriched.py
+      - data/intermediate/dim_blocks.csv
+      - data/intermediate/cross_visits.csv
+
+    outs:
+      - data/enriched/category_affinities.csv
+
   # Additional stages can be defined here
