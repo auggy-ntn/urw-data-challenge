@@ -35,8 +35,26 @@ stages:
       - src/data_pipelines/intermediate_to_enriched.py
       - data/intermediate/dim_blocks.csv
       - data/intermediate/cross_visits.csv
-
+      - data/intermediate/fact_stores.csv
     outs:
       - data/enriched/category_affinities.csv
+      - data/enriched/store_metrics.csv
 
-  # Additional stages can be defined here
+  # Stage 3: Train performance prediction models
+  train_models:
+    cmd: uv run python -m src.utils.train_model
+    deps:
+      - src/utils/train_model.py
+      - data/enriched/store_metrics.csv
+      - data/enriched/category_affinities.csv
+      - data/intermediate/dim_blocks.csv
+      - data/intermediate/cross_visits.csv
+      - data/intermediate/store_financials.csv
+    outs:
+      - models/capture_rate_model.joblib
+      - models/capture_rate_encoders.joblib
+      - models/sales_per_sqm_model.joblib
+      - models/sales_per_sqm_encoders.joblib
+      - models/dwell_time_model.joblib
+      - models/dwell_time_encoders.joblib
+      - models/mall_means.csv

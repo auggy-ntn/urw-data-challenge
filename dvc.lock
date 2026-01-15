@@ -75,6 +75,10 @@ stages:
       hash: md5
       md5: d0d1b8213f90018950c4f0cd2dafe24f
       size: 422796
+    - path: data/intermediate/fact_stores.csv
+      hash: md5
+      md5: 686809fe74031effad860c369e088f77
+      size: 89693445
     - path: src/data_pipelines/intermediate_to_enriched.py
       hash: md5
       md5: 03c73f5d3321b64fdc7a51ddb628b955
@@ -84,3 +88,63 @@ stages:
       hash: md5
       md5: 9ee68f65002dca59fff3ac47ecf0e55a
       size: 9224
+    - path: data/enriched/store_metrics.csv
+      hash: md5
+      md5: ac736c2ce37d9148fafd21fdac519b79
+      size: 242827
+  train_models:
+    cmd: uv run python -m src.utils.train_model
+    deps:
+    - path: data/enriched/category_affinities.csv
+      hash: md5
+      md5: 9ee68f65002dca59fff3ac47ecf0e55a
+      size: 9224
+    - path: data/enriched/store_metrics.csv
+      hash: md5
+      md5: ac736c2ce37d9148fafd21fdac519b79
+      size: 242827
+    - path: data/intermediate/cross_visits.csv
+      hash: md5
+      md5: 492279479f0a11c300a401f869690927
+      size: 5697658
+    - path: data/intermediate/dim_blocks.csv
+      hash: md5
+      md5: d0d1b8213f90018950c4f0cd2dafe24f
+      size: 422796
+    - path: data/intermediate/store_financials.csv
+      hash: md5
+      md5: a01fb2c928e1dfded64d3bf9a4d961d6
+      size: 369077
+    - path: src/utils/train_model.py
+      hash: md5
+      md5: 70327ecad4ac3040d0c06ad87d0b2584
+      size: 15796
+    outs:
+    - path: models/capture_rate_encoders.joblib
+      hash: md5
+      md5: 331afc07b1f003d2620d723675a82e89
+      size: 1366
+    - path: models/capture_rate_model.joblib
+      hash: md5
+      md5: 1ee24f9b57b370762325bd633682c51a
+      size: 19731873
+    - path: models/dwell_time_encoders.joblib
+      hash: md5
+      md5: 331afc07b1f003d2620d723675a82e89
+      size: 1366
+    - path: models/dwell_time_model.joblib
+      hash: md5
+      md5: 98e7aad81bc8b5e551f0046cef6dcf9c
+      size: 28492977
+    - path: models/mall_means.csv
+      hash: md5
+      md5: efc8f1a99fa460519d38e7876fea0532
+      size: 2107
+    - path: models/sales_per_sqm_encoders.joblib
+      hash: md5
+      md5: 60cf745e944601dca6345c1fbe82ea21
+      size: 1346
+    - path: models/sales_per_sqm_model.joblib
+      hash: md5
+      md5: 6359d3bfe97c23c04f3fa6359802de25
+      size: 19516881

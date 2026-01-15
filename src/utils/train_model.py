@@ -2,6 +2,8 @@
 
 import joblib
 import pandas as pd
+
+# TODO: Add option to use other models
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold, LeaveOneGroupOut, cross_val_score
 from sklearn.preprocessing import LabelEncoder
