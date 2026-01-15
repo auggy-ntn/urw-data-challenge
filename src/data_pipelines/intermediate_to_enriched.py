@@ -45,6 +45,28 @@ def build_store_metrics(fact_stores: pd.DataFrame) -> pd.DataFrame:
     return store_total
 
 
+def compute_category_sri_averages(
+    fact_sri_scores: pd.DataFrame,
+    dim_blocks: pd.DataFrame,
+) -> dict:
+    """Compute average SRI score for each category.
+
+    Args:
+        fact_sri_scores: DataFrame with store_code and sri_score.
+        dim_blocks: Dimension table for blocks (to get category).
+
+    Returns:
+        Dictionary mapping category to average SRI score.
+    """
+    sri_with_cat = pd.merge(
+        fact_sri_scores,
+        dim_blocks[[col.STORE_CODE, col.CAT_HIGH]].drop_duplicates(),
+        on=col.STORE_CODE,
+        how="left",
+    )
+    return sri_with_cat.groupby(col.CAT_HIGH)[col.SRI_SCORE].mean()
+
+
 def process_intermediate_to_enriched():
     """Process intermediate data to create enriched datasets."""
     # Read intermediate datasets
@@ -57,6 +79,9 @@ def process_intermediate_to_enriched():
     logger.info(f"Reading fact_stores from {pth.INTERMEDIATE_FACT_STORES}")
     fact_stores = pd.read_csv(pth.INTERMEDIATE_FACT_STORES)
 
+    logger.info(f"Reading fact_sri_scores from {pth.INTERMEDIATE_FACT_SRI_SCORES}")
+    fact_sri_scores = pd.read_csv(pth.INTERMEDIATE_FACT_SRI_SCORES)
+
     # Compute store metrics
     logger.info("Calculating store metrics")
     store_metrics = build_store_metrics(fact_stores)
@@ -64,6 +89,10 @@ def process_intermediate_to_enriched():
     # Compute category affinities
     logger.info("Calculating category affinities")
     affinity_results = create_affinity_results(cross_visits, dim_blocks)
+
+    # Compute average SRI scores per category
+    logger.info("Calculating category SRI averages")
+    category_sri_avg = compute_category_sri_averages(fact_sri_scores, dim_blocks)
 
     # Save enriched datasets
     pth.ENRICHED_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -73,6 +102,9 @@ def process_intermediate_to_enriched():
 
     logger.info(f"Saving category affinities to {pth.ENRICHED_CATEGORY_AFFINITIES}")
     affinity_results.to_csv(pth.ENRICHED_CATEGORY_AFFINITIES, index=False)
+
+    logger.info(f"Saving category SRI averages to {pth.ENRICHED_CATEGORY_SRI_AVG}")
+    category_sri_avg.to_csv(pth.ENRICHED_CATEGORY_SRI_AVG, index=True)
 
     logger.info("Enriched data saved successfully.")
 

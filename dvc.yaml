@@ -39,6 +39,7 @@ stages:
     outs:
       - data/enriched/category_affinities.csv
       - data/enriched/store_metrics.csv
+      - data/enriched/category_sri_avg.csv
 
   # Stage 3: Train performance prediction models
   train_models:
