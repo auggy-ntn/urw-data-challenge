@@ -75,19 +75,43 @@ stages:
       hash: md5
       md5: d0d1b8213f90018950c4f0cd2dafe24f
       size: 422796
+    - path: data/intermediate/dim_malls.csv
+      hash: md5
+      md5: 595a9f7274ae570afe80a56f8e16a265
+      size: 642
+    - path: data/intermediate/fact_malls.csv
+      hash: md5
+      md5: 4f96982f187844db9fad50313490c926
+      size: 348129
     - path: data/intermediate/fact_stores.csv
       hash: md5
       md5: 686809fe74031effad860c369e088f77
       size: 89693445
+    - path: data/intermediate/store_financials.csv
+      hash: md5
+      md5: a01fb2c928e1dfded64d3bf9a4d961d6
+      size: 369077
     - path: src/data_pipelines/intermediate_to_enriched.py
       hash: md5
-      md5: 421c066212d5fadd09920c5f72903edd
-      size: 4032
+      md5: e024cd2bd1a4808d428821252bc0027b
+      size: 12138
     outs:
     - path: data/enriched/category_affinities.csv
       hash: md5
       md5: 9ee68f65002dca59fff3ac47ecf0e55a
       size: 9224
+    - path: data/enriched/category_sri_avg.csv
+      hash: md5
+      md5: c918f7a060e6e0a7fa0ba12a912cd92a
+      size: 300
+    - path: data/enriched/mall_kpis.csv
+      hash: md5
+      md5: 8fe3dbf344399923b8da6859ea4d83ed
+      size: 2648
+    - path: data/enriched/store_kpis.csv
+      hash: md5
+      md5: b26a9ca3c7f338ceec4f41ddd98ee697
+      size: 630032
     - path: data/enriched/store_metrics.csv
       hash: md5
       md5: ac736c2ce37d9148fafd21fdac519b79

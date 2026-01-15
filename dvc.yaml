@@ -36,10 +36,15 @@ stages:
       - data/intermediate/dim_blocks.csv
       - data/intermediate/cross_visits.csv
       - data/intermediate/fact_stores.csv
+      - data/intermediate/store_financials.csv
+      - data/intermediate/dim_malls.csv
+      - data/intermediate/fact_malls.csv
     outs:
       - data/enriched/category_affinities.csv
       - data/enriched/store_metrics.csv
       - data/enriched/category_sri_avg.csv
+      - data/enriched/mall_kpis.csv
+      - data/enriched/store_kpis.csv
 
   # Stage 3: Train performance prediction models
   train_models:

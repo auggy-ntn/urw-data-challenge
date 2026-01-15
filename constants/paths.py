@@ -34,8 +34,10 @@ INTERMEDIATE_FACT_SRI_SCORES = INTERMEDIATE_DATA_DIR / "fact_sri_scores.csv"
 
 # Enriched data files
 ENRICHED_CATEGORY_AFFINITIES = ENRICHED_DATA_DIR / "category_affinities.csv"
-ENRICHED_STORE_METRICS = ENRICHED_DATA_DIR / "store_metrics.csv"
+ENRICHED_STORE_METRICS = ENRICHED_DATA_DIR / "store_metrics.csv"  # For modelling
+ENRICHED_STORE_KPIS = ENRICHED_DATA_DIR / "store_kpis.csv"  # For dashboard
 ENRICHED_CATEGORY_SRI_AVG = ENRICHED_DATA_DIR / "category_sri_avg.csv"
+ENRICHED_MALL_KPIS = ENRICHED_DATA_DIR / "mall_kpis.csv"
 
 
 # Configuration directory

@@ -13,3 +13,6 @@ CSV_PARAMS = {
 
 # Date format
 DATE_FORMAT = "%d/%m/%Y"
+
+# Window size for KPIs (in months)
+WINDOW_SIZE = 1

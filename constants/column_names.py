@@ -1,5 +1,7 @@
 """Column names used across the project."""
 
+from constants.constants import WINDOW_SIZE
+
 ########## RAW DATA COLUMN NAMES ##########
 
 # dim_blocks
@@ -126,6 +128,16 @@ CATEGORY_A = "cat_A"
 CATEGORY_B = "cat_B"
 AFFINITY = "avg_jaccard_strength"
 NB_PAIRS = "nb_pairs"
+
+# Mall and Store KPIs
+TOTAL_MALL_SALES = "total_mall_sales_r12m_millions"  # Specific to mall_kpis
+OCR = "ocr"  # Specific to store_kpis
+DAILY_PEOPLE_IN_LAST_XM = f"daily_people_in_last_{WINDOW_SIZE}m"
+AVG_DWELL_TIME_LAST_XM = f"avg_dwell_time_last_{WINDOW_SIZE}m"
+DAILY_PEOPLE_IN_BEFORE_XM = f"daily_people_in_before_{WINDOW_SIZE}m"
+AVG_DWELL_TIME_BEFORE_XM = f"avg_dwell_time_before_{WINDOW_SIZE}m"
+PCT_CHANGE_PEOPLE_IN = "pct_change_people_in"
+PCT_CHANGE_AVG_DWELL_TIME = "pct_change_avg_dwell_time"
 
 
 ########## MODEL FEATURES COLUMN NAMES ##########
