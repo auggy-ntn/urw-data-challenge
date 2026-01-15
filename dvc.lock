@@ -33,8 +33,8 @@ stages:
       size: 380919
     - path: src/data_pipelines/raw_to_intermediate.py
       hash: md5
-      md5: e7e2aff630ba64723db430dad12ce070
-      size: 6180
+      md5: 2d09e6bd8109d55ca5ab2718770d74eb
+      size: 6245
     outs:
     - path: data/intermediate/cross_visits.csv
       hash: md5
@@ -77,8 +77,8 @@ stages:
       size: 422796
     - path: src/data_pipelines/intermediate_to_enriched.py
       hash: md5
-      md5: 8cacd4e7ffc41da73ca09af98b5fd493
-      size: 1083
+      md5: 03c73f5d3321b64fdc7a51ddb628b955
+      size: 2908
     outs:
     - path: data/enriched/category_affinities.csv
       hash: md5

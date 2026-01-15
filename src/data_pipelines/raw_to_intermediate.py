@@ -175,6 +175,7 @@ def process_raw_to_intermediate():
     cross_visits = clean_cross_visits(cross_visits)
 
     # Save intermediate data
+    pth.INTERMEDIATE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Saving intermediate dim_blocks to {pth.INTERMEDIATE_DIM_BLOCKS}")
     dim_blocks.to_csv(pth.INTERMEDIATE_DIM_BLOCKS, index=False)
 

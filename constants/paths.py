@@ -34,10 +34,15 @@ INTERMEDIATE_FACT_SRI_SCORES = INTERMEDIATE_DATA_DIR / "fact_sri_scores.csv"
 
 # Enriched data files
 ENRICHED_CATEGORY_AFFINITIES = ENRICHED_DATA_DIR / "category_affinities.csv"
+ENRICHED_STORE_METRICS = ENRICHED_DATA_DIR / "store_metrics.csv"
 
 
 # Configuration directory
 CONFIG_DIR = PROJECT_ROOT / "config"
+
+# Models directory
+MODELS_DIR = PROJECT_ROOT / "models"
+MALL_MEANS = MODELS_DIR / "mall_means.csv"
 
 # Notebooks directory
 
