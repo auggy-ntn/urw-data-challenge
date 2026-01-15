@@ -24,6 +24,13 @@ def apply_urw_styling():
         /* Main background */
         .stApp {{
             background-color: {URW_COLORS["primary"]};
+            color: {URW_COLORS["text"]};
+        }}
+
+        /* Ensure all text elements use the theme color */
+        .stMarkdown, .stMarkdown p, .stMarkdown span,
+        div[data-testid="stMarkdownContainer"] p {{
+            color: {URW_COLORS["text"]} !important;
         }}
 
         /* Headers */
@@ -119,9 +126,18 @@ def apply_urw_styling():
             transition: all 0.2s ease;
         }}
 
+        .stButton > button p {{
+            color: white !important;
+        }}
+
         .stButton > button:hover {{
             background-color: {URW_COLORS["accent_light"]} !important;
+            color: white !important;
             box-shadow: 0 4px 8px rgba(228, 0, 43, 0.3);
+        }}
+
+        .stButton > button:hover p {{
+            color: white !important;
         }}
 
         /* Divider */

@@ -9,7 +9,7 @@ based on category affinities.
 
 import pandas as pd
 
-from src.utils import columns as col
+from constants import column_names as col
 from src.utils.train_model import engineer_store_features
 
 
@@ -230,6 +230,18 @@ def predict_swap_impact(
     ]
     mall_sri = current_store_sri.loc[current_store_sri.index.isin(mall_store_codes)]
 
+    # Get current store metrics (for delta calculation)
+    if store_to_swap in current_store_performance.index:
+        current_store_sales = current_store_performance.loc[
+            store_to_swap, col.TARGET_SALES_PER_SQM
+        ]
+        current_store_dwell = current_store_performance.loc[
+            store_to_swap, col.TARGET_DWELL_TIME
+        ]
+    else:
+        current_store_sales = 0.0
+        current_store_dwell = 0.0
+
     current_avg_sales = mall_perf[col.TARGET_SALES_PER_SQM].mean()
     current_avg_dwell = mall_perf[col.TARGET_DWELL_TIME].mean()
     # GLA-weighted SRI
@@ -276,6 +288,10 @@ def predict_swap_impact(
             "new_category": new_category,
             "gla": store_gla,
             "gla_share": store_gla / mall_total_gla,
+            "metrics": {
+                "sales_per_sqm": current_store_sales,
+                "dwell_time": current_store_dwell,
+            },
         },
         "current_mall_metrics": {
             "mall_id": mall_id,
