@@ -52,6 +52,23 @@ def apply_urw_styling():
             border-right: 1px solid {URW_COLORS["border"]};
         }}
 
+        /* Sidebar collapse/expand button - always visible */
+        [data-testid="stSidebarCollapseButton"] {{
+            opacity: 1 !important;
+            visibility: visible !important;
+        }}
+
+        [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="stBaseButton-headerNoPadding"] {{
+            color: {URW_COLORS["text_muted"]} !important;
+            opacity: 1 !important;
+        }}
+
+        [data-testid="stSidebarCollapseButton"] span,
+        [data-testid="stBaseButton-headerNoPadding"] span {{
+            color: {URW_COLORS["text_muted"]} !important;
+        }}
+
         /* Metric cards */
         [data-testid="stMetric"] {{
             background-color: {URW_COLORS["primary"]};
