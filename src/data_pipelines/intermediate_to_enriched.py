@@ -296,7 +296,7 @@ def build_store_kpis(
         * 100
     )
 
-    store_kpis["pct_change_average_dwell_time"] = (
+    store_kpis[col.PCT_CHANGE_AVG_DWELL_TIME] = (
         (
             store_kpis[col.AVG_DWELL_TIME_LAST_XM]
             - store_kpis[col.AVG_DWELL_TIME_BEFORE_XM]

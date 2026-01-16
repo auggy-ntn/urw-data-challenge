@@ -4,6 +4,7 @@ Streamlit app for visualizing mall and store KPIs.
 """
 
 from constants import column_names as col
+from constants import constants as cst
 from src.streamlit.data_loading import (
     get_all_categories,
     get_mall_kpis,
@@ -62,7 +63,7 @@ def render_mall_card(mall: dict):
             <div class="mall-card">
                 <h3>{mall["name"]}</h3>
                 <p style="color: {URW_COLORS["text_muted"]};">
-                    {mall["country"]}
+                    Country: {mall["country"]}
                 </p>
             </div>
             """,
@@ -105,30 +106,58 @@ def render_store_ranking(stores: list, metric_name: str):
         "Footfall": "daily visitors",
         "Revenue": "€",
         "Dwell Time": "min",
+        "OCR": "",
     }
     unit = unit_mapping.get(metric_name, "")
 
     for store in stores:
-        delta = store.get("delta", 0) or 0
-        delta_color = URW_COLORS["success"] if delta >= 0 else URW_COLORS["danger"]
+        delta = store.get("delta")
 
         # Format value based on metric
-        value = store.get("value", 0)
-        if metric_name == "Revenue":
+        value = store.get("value")
+        if value is None:
+            value_str = "No data"
+        elif metric_name == "Revenue":
             value_str = f"€{value:,}"
         elif metric_name == "Dwell Time":
             value_str = f"{value} min"
+        elif metric_name == "OCR":
+            value_str = f"{value:.2f}"
         else:
             value_str = f"{value:,} {unit}"
 
-        # Format delta display
-        if delta != 0:
+        # Format delta display as bubble with label
+        delta_label = (
+            f'<span style="color: {URW_COLORS["text_muted"]}; font-size: 0.75rem; '
+            f'margin-right: 8px;">Change in the last {cst.WINDOW_SIZE} month(s)</span>'
+        )
+        if delta is None:
+            # No delta available (e.g., revenue, OCR) - grey bubble
             delta_str = (
-                f'<span style="color: {delta_color}; '
+                f"{delta_label}"
+                f'<span style="background-color: {URW_COLORS["text_muted"]}20; '
+                f"color: {URW_COLORS['text_muted']}; "
+                f"padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; "
+                f'font-weight: 500;">No data</span>'
+            )
+        elif delta != 0:
+            delta_color = URW_COLORS["success"] if delta >= 0 else URW_COLORS["danger"]
+            delta_str = (
+                f"{delta_label}"
+                f'<span style="background-color: {delta_color}20; '
+                f"color: {delta_color}; "
+                f"padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; "
                 f'font-weight: 500;">{delta:+.1f}%</span>'
             )
         else:
-            delta_str = ""
+            # Zero delta - grey bubble
+            delta_str = (
+                f"{delta_label}"
+                f'<span style="background-color: {URW_COLORS["text_muted"]}20; '
+                f"color: {URW_COLORS['text_muted']}; "
+                f"padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; "
+                f'font-weight: 500;">0.0%</span>'
+            )
 
         category = store.get("category", "")
 
@@ -181,7 +210,7 @@ def page_main_dashboard():
     )
 
     # Portfolio-level KPIs
-    st.subheader("Malls General Overview")
+    st.subheader("Overall View")
     kpis = get_mall_kpis()  # Aggregate KPIs
 
     if kpis:
@@ -252,7 +281,7 @@ def page_mall_detail():
         st.markdown(
             f"""
             <h1 style="margin: 0; padding-top: 10px;">{mall["name"]}</h1>
-            <p class="subtitle" style="margin: 0;">{mall["country"]}</p>
+            <p class="subtitle" style="margin: 10px;">Country: {mall["country"]}</p>
             """,
             unsafe_allow_html=True,
         )
@@ -302,19 +331,26 @@ def page_mall_detail():
     st.divider()
 
     # Top stores ranking
-    st.subheader("Top Stores")
+    col_title, col_toggle = st.columns([3, 1])
+    with col_title:
+        st.subheader("Top Stores")
+    with col_toggle:
+        show_worst = st.checkbox("Show worst", value=False)
+
     metric = st.selectbox(
         "Rank Stores By",
-        options=["footfall", "revenue", "dwell_time"],
+        options=["footfall", "revenue", "dwell_time", "ocr"],
         format_func=lambda x: {
             "footfall": "Footfall",
             "revenue": "Revenue",
             "dwell_time": "Dwell Time",
+            "ocr": "OCR",
         }[x],
     )
-    stores = get_top_stores(mall_id, metric=metric)
+    stores = get_top_stores(mall_id, metric=metric, ascending=show_worst)
+    metric_display = "OCR" if metric == "ocr" else metric.replace("_", " ").title()
     if stores:
-        render_store_ranking(stores, metric.replace("_", " ").title())
+        render_store_ranking(stores, metric_display)
     else:
         st.info("No store data available for this mall")
 

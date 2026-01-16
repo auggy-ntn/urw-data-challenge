@@ -233,6 +233,8 @@ def build_training_dateset(
     targets_raw = targets_raw.replace([np.inf, -np.inf], np.nan)
 
     # Get mall_ids for normalization and CV
+    # We normalize targets to make the model more stable across malls of different
+    # traffic/sales levels.
     store_to_mall = dim_blocks.drop_duplicates(subset=[col.STORE_CODE]).set_index(
         col.STORE_CODE
     )[col.MALL_ID]

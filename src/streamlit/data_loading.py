@@ -58,13 +58,16 @@ def get_mall_kpis(mall_id: int | None = None):
 
 
 @st.cache_data
-def get_top_stores(mall_id: int, metric: str = "footfall", limit: int = 5):
-    """Get top performing stores for a mall.
+def get_top_stores(
+    mall_id: int, metric: str = "footfall", limit: int = 5, ascending: bool = False
+):
+    """Get top or bottom performing stores for a mall.
 
     Args:
         mall_id: Mall ID to filter stores.
-        metric: Metric to rank by (footfall, revenue, dwell_time).
-        limit: Number of top stores to return.
+        metric: Metric to rank by (footfall, revenue, dwell_time, ocr).
+        limit: Number of stores to return.
+        ascending: If True, return worst performing stores (lowest values first).
 
     Returns:
         list: List of store dictionaries with rank, name, value, delta.
@@ -74,11 +77,13 @@ def get_top_stores(mall_id: int, metric: str = "footfall", limit: int = 5):
         "footfall": col.DAILY_PEOPLE_IN_LAST_XM,
         "revenue": col.SALES_R12M,
         "dwell_time": col.AVG_DWELL_TIME_LAST_XM,
+        "ocr": col.OCR,
     }
     delta_mapping = {
         "footfall": col.PCT_CHANGE_PEOPLE_IN,
         "revenue": None,
-        "dwell_time": "pct_change_average_dwell_time",
+        "dwell_time": col.PCT_CHANGE_AVG_DWELL_TIME,
+        "ocr": None,
     }
 
     try:
@@ -97,13 +102,19 @@ def get_top_stores(mall_id: int, metric: str = "footfall", limit: int = 5):
         logger.warning(f"No stores found for mall_id={mall_id}")
         return []
 
-    top_stores = mall_stores.sort_values(by=sort_col, ascending=False).head(limit)
+    top_stores = mall_stores.sort_values(by=sort_col, ascending=ascending).head(limit)
 
     # Format output for UI
     result = []
     for rank, (store_code, row) in enumerate(top_stores.iterrows(), start=1):
-        value = int(row[sort_col]) if pd.notna(row[sort_col]) else 0
-        delta = 0
+        raw_value = row[sort_col]
+        if pd.notna(raw_value):
+            # For OCR (ratio), keep as float; for others convert to int
+            value = raw_value if metric == "ocr" else int(raw_value)
+        else:
+            value = None  # Will show "No data" in UI
+
+        delta = None if delta_col is None else 0
         if delta_col and pd.notna(row.get(delta_col)):
             delta = row[delta_col]
 
