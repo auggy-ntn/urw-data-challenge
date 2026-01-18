@@ -226,6 +226,11 @@ def build_training_dateset(
     targets_raw[col.TARGET_DWELL_TIME] = store_total_merged.loc[
         features_df.index, col.MODEL_STORE_AVG_DWELL_TIME
     ]
+    # Footfall: average daily people_in = total_people_in / days_recorded
+    targets_raw[col.TARGET_FOOTFALL] = (
+        store_total_merged.loc[features_df.index, col.MODEL_STORE_TOTAL_PEOPLE_IN]
+        / store_total_merged.loc[features_df.index, col.MODEL_STORE_DAYS_RECORDED]
+    )
 
     # Replace inf values with NaN to avoid polluting mall means
     import numpy as np
@@ -247,6 +252,7 @@ def build_training_dateset(
         col.TARGET_CAPTURE_RATE,
         col.TARGET_SALES_PER_SQM,
         col.TARGET_DWELL_TIME,
+        col.TARGET_FOOTFALL,
     ]:
         # Use only finite values for computing mall means
         mall_means[target_col] = (
@@ -259,6 +265,7 @@ def build_training_dateset(
         col.TARGET_CAPTURE_RATE,
         col.TARGET_SALES_PER_SQM,
         col.TARGET_DWELL_TIME,
+        col.TARGET_FOOTFALL,
     ]:
         mall_mean_series = mall_ids.map(mall_means[target_col])
         targets[target_col] = targets_raw[target_col] / mall_mean_series
@@ -379,6 +386,7 @@ def training_pipeline():
         col.TARGET_CAPTURE_RATE,
         col.TARGET_SALES_PER_SQM,
         col.TARGET_DWELL_TIME,
+        col.TARGET_FOOTFALL,
     ]:
         logger.info(f"Training model for target: {target_col}")
         # TODO: Allow user to select CV strategy
@@ -409,6 +417,7 @@ def load_model_artifacts() -> tuple[dict, dict, dict]:
         col.TARGET_CAPTURE_RATE,
         col.TARGET_SALES_PER_SQM,
         col.TARGET_DWELL_TIME,
+        col.TARGET_FOOTFALL,
     ]
 
     # Load individual model files

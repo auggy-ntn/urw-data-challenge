@@ -249,27 +249,6 @@ def render_swap_results(
     improvement = result["improvement"]
     mall_id = result["current_mall_metrics"]["mall_id"]
 
-    # Denormalize metrics if mall_means is available
-    cur_sales = result["current_mall_metrics"]["avg_sales_per_sqm"]
-    cur_dwell = result["current_mall_metrics"]["avg_dwell_time"]
-    pred_sales = result["predicted_mall_metrics"]["avg_sales_per_sqm"]
-    pred_dwell = result["predicted_mall_metrics"]["avg_dwell_time"]
-
-    new_store_sales = result["new_store_predictions"]["sales_per_sqm"]
-    new_store_dwell = result["new_store_predictions"]["dwell_time"]
-
-    if mall_means:
-        # Get means for this mall
-        sales_mean = mall_means.get(col.TARGET_SALES_PER_SQM, {}).get(mall_id, 1.0)
-        dwell_mean = mall_means.get(col.TARGET_DWELL_TIME, {}).get(mall_id, 1.0)
-
-        cur_sales *= sales_mean
-        cur_dwell *= dwell_mean
-        pred_sales *= sales_mean
-        pred_dwell *= dwell_mean
-        new_store_sales *= sales_mean
-        new_store_dwell *= dwell_mean
-
     # Swap summary
     gla_pct = swapped["gla_share"] * 100
     st.markdown(
@@ -299,20 +278,41 @@ def render_swap_results(
         unsafe_allow_html=True,
     )
 
-    # Projected Mall Metrics
+    # Projected Mall Metrics - 4 cards matching the KPI cards at top of page
     st.markdown("#### Projected Mall Impact")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
-    # Calculate Total Revenue Impact
-    # 1. Get current total mall revenue (in M€)
+    # Get current KPIs
     kpis = get_mall_kpis(mall_id)
+
+    # Card 1: Daily Footfall
+    current_mall_footfall = kpis.get(col.DAILY_PEOPLE_IN_LAST_XM, 0)
+    footfall_pct_change = improvement["footfall_pct"]
+    new_mall_footfall = current_mall_footfall * (1 + footfall_pct_change / 100)
+
+    with col1:
+        st.metric(
+            "Projected Daily Footfall",
+            f"{int(new_mall_footfall):,}",
+            f"{footfall_pct_change:+.1f}%",
+        )
+
+    # Card 2: Avg. Dwell Time
+    current_mall_dwell = kpis.get(col.AVG_DWELL_TIME_LAST_XM, 0)
+    dwell_pct_change = improvement["dwell_pct"]
+    new_mall_dwell = current_mall_dwell * (1 + dwell_pct_change / 100)
+
+    with col2:
+        st.metric(
+            "Projected Dwell Time",
+            f"{new_mall_dwell:.0f}min",
+            f"{dwell_pct_change:+.1f}%",
+        )
+
+    # Card 3: Revenue
+    # Calculate Total Revenue Impact
     current_mall_revenue_m = kpis.get(col.TOTAL_MALL_SALES, 0)
     current_mall_revenue = current_mall_revenue_m * 1_000_000
-
-    # 2. Calculate delta revenue from store swap
-    # sales_per_sqm is in Euros
-    # current_store_sales = old_sales_sqm * gla
-    # new_store_sales = new_sales_sqm * gla
     swapped_gla = swapped["gla"]
 
     # Get normalized metrics
@@ -329,7 +329,6 @@ def render_swap_results(
     new_sales_sqm = new_sales_norm * sales_mean
 
     delta_revenue = (new_sales_sqm - old_sales_sqm) * swapped_gla
-
     new_mall_revenue = current_mall_revenue + delta_revenue
     new_mall_revenue_m = new_mall_revenue / 1_000_000
 
@@ -337,29 +336,18 @@ def render_swap_results(
         (delta_revenue / current_mall_revenue) * 100 if current_mall_revenue else 0
     )
 
-    with col1:
+    with col3:
         st.metric(
-            "Projected Total Revenue",
+            "Projected Revenue",
             f"€{new_mall_revenue_m:,.1f}M",
             f"{revenue_pct_change:+.2f}%",
         )
 
-    # Calculate Projected Mall Dwell Time
-    current_mall_dwell = kpis.get(col.AVG_DWELL_TIME_LAST_XM, 0)
-    dwell_pct_change = improvement["dwell_pct"]
-    new_mall_dwell = current_mall_dwell * (1 + dwell_pct_change / 100)
-
-    with col2:
+    # Card 4: Avg. SRI Score
+    sri_change = improvement["sri_pct"]
+    with col4:
         st.metric(
-            "Projected Mall Dwell Time",
-            f"{new_mall_dwell:.1f} min",
-            f"{dwell_pct_change:+.1f}%",
-        )
-
-    with col3:
-        sri_change = improvement["sri_pct"]
-        st.metric(
-            "SRI Score (Weighted)",
+            "Projected SRI Score",
             f"{result['predicted_mall_metrics']['avg_sri_gla_weighted']:.1f}",
             f"{sri_change:+.1f}%",
         )

@@ -158,12 +158,14 @@ def page_mall_detail():
         footfall_raw = kpis.get(col.DAILY_PEOPLE_IN_LAST_XM)
         dwell_raw = kpis.get(col.AVG_DWELL_TIME_LAST_XM)
         revenue_raw = kpis.get(col.TOTAL_MALL_SALES)
+        sri_raw = kpis.get(col.AVG_MALL_SRI)
 
         footfall_str = f"{int(footfall_raw):,}" if is_valid(footfall_raw) else "No data"
         dwell_str = f"{dwell_raw:.0f}min" if is_valid(dwell_raw) else "No data"
         revenue_str = f"€{revenue_raw:.1f}M" if is_valid(revenue_raw) else "No data"
+        sri_str = f"{sri_raw:.1f}" if is_valid(sri_raw) else "No data"
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             render_kpi_card(
                 "Daily Footfall",
@@ -178,6 +180,8 @@ def page_mall_detail():
             )
         with col3:
             render_kpi_card("Revenue (M€)", revenue_str, None)
+        with col4:
+            render_kpi_card("Avg. SRI Score", sri_str, None)
 
     st.divider()
 

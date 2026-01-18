@@ -93,8 +93,8 @@ stages:
       size: 369077
     - path: src/data_pipelines/intermediate_to_enriched.py
       hash: md5
-      md5: cc2ad62c376a4aaf2b8d8ba665003fe5
-      size: 12918
+      md5: affc1abba0e9840b50f7b2ad6a0cf9f8
+      size: 14184
     outs:
     - path: data/enriched/category_affinities.csv
       hash: md5
@@ -106,8 +106,8 @@ stages:
       size: 300
     - path: data/enriched/mall_kpis.csv
       hash: md5
-      md5: c7a183ae8e0ccbc22b708eb4757bd558
-      size: 8629
+      md5: d4f585523872c3fdce2b6b00288a39f7
+      size: 9062
     - path: data/enriched/store_kpis.csv
       hash: md5
       md5: fdeeb2bfedc838cfd671a2071a7585ec
@@ -141,8 +141,8 @@ stages:
       size: 369077
     - path: src/utils/train_model.py
       hash: md5
-      md5: d8b20423cf43dc6a22bd4c0371f82d9c
-      size: 15947
+      md5: 5d5b8570f59f6af5c7f7b3fa075722ed
+      size: 16350
     outs:
     - path: models/capture_rate_encoders.joblib
       hash: md5
@@ -162,8 +162,8 @@ stages:
       size: 22371537
     - path: models/mall_means.csv
       hash: md5
-      md5: efc8f1a99fa460519d38e7876fea0532
-      size: 2107
+      md5: 96607f5abf27331645981ae385d28256
+      size: 2709
     - path: models/sales_per_sqm_encoders.joblib
       hash: md5
       md5: 60cf745e944601dca6345c1fbe82ea21

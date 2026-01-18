@@ -131,6 +131,7 @@ NB_PAIRS = "nb_pairs"
 
 # Mall and Store KPIs
 TOTAL_MALL_SALES = "total_mall_sales_r12m_millions"  # Specific to mall_kpis
+AVG_MALL_SRI = "avg_mall_sri"  # Average SRI score for mall
 OCR = "ocr"  # Specific to store_kpis
 DAILY_PEOPLE_IN_LAST_XM = f"daily_people_in_last_{WINDOW_SIZE}m"
 AVG_DWELL_TIME_LAST_XM = f"avg_dwell_time_last_{WINDOW_SIZE}m"
@@ -160,3 +161,4 @@ MODEL_MALL_CATEGORY_SHARE = "mall_category_share"
 TARGET_CAPTURE_RATE = "capture_rate"
 TARGET_SALES_PER_SQM = "sales_per_sqm"
 TARGET_DWELL_TIME = "dwell_time"
+TARGET_FOOTFALL = "footfall"  # Average daily people_in

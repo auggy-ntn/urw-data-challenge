@@ -74,6 +74,7 @@ def build_mall_kpis(
     fact_malls: pd.DataFrame,
     fact_stores: pd.DataFrame,
     store_financials: pd.DataFrame,
+    fact_sri_scores: pd.DataFrame,
     window_size: int = cst.WINDOW_SIZE,
 ) -> pd.DataFrame:
     """Build dataframe with mall KPIs for dashboard.
@@ -84,6 +85,7 @@ def build_mall_kpis(
         fact_malls (pd.DataFrame): Mall fact data.
         fact_stores (pd.DataFrame): Store fact data.
         store_financials (pd.DataFrame): Store financial data.
+        fact_sri_scores (pd.DataFrame): SRI scores data.
         window_size (int, Optional): Window size in months for KPI calculation.
 
     Returns:
@@ -180,6 +182,34 @@ def build_mall_kpis(
 
     mall_kpis = mall_kpis.merge(
         mall_sales, left_index=True, right_index=True, how="left", validate="1:1"
+    )
+
+    # Compute GLA-weighted average SRI per mall (larger stores contribute more)
+    sri_with_mall = fact_sri_scores.merge(
+        store_to_mall.reset_index()[[col.STORE_CODE, col.MALL_ID]],
+        on=col.STORE_CODE,
+        how="left",
+    )
+    # Get GLA for each store
+    store_gla = dim_blocks.drop_duplicates(subset=[col.STORE_CODE])[
+        [col.STORE_CODE, col.GLA]
+    ]
+    sri_with_gla = sri_with_mall.merge(store_gla, on=col.STORE_CODE, how="left")
+
+    # Compute GLA-weighted average SRI per mall
+    def gla_weighted_mean(group):
+        valid = group.dropna(subset=[col.SRI_SCORE, col.GLA])
+        if valid.empty or valid[col.GLA].sum() == 0:
+            return group[col.SRI_SCORE].mean()  # Fallback to simple mean
+        return (valid[col.SRI_SCORE] * valid[col.GLA]).sum() / valid[col.GLA].sum()
+
+    mall_avg_sri = sri_with_gla.groupby(col.MALL_ID).apply(
+        gla_weighted_mean, include_groups=False
+    )
+    mall_avg_sri = mall_avg_sri.rename(col.AVG_MALL_SRI)
+
+    mall_kpis = mall_kpis.merge(
+        mall_avg_sri, left_index=True, right_index=True, how="left", validate="1:1"
     )
 
     # Create percentage distribution of bl1_label per mall
@@ -371,7 +401,12 @@ def process_intermediate_to_enriched():
     # Compute mall KPIs
     logger.info("Calculating mall KPIs")
     mall_kpis = build_mall_kpis(
-        dim_malls, dim_blocks, fact_malls, fact_stores, store_financials
+        dim_malls,
+        dim_blocks,
+        fact_malls,
+        fact_stores,
+        store_financials,
+        fact_sri_scores,
     )
 
     # Compute store KPIs

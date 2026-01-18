@@ -155,14 +155,15 @@ def predict_swap_impact(
     """Predict the impact of swapping a store to a new category.
 
     Computes mall-level composite score using:
-    - Average sales per sqm
+    - Average footfall (daily people_in)
     - Average dwell time
+    - Average sales per sqm
     - GLA-weighted average SRI score (larger stores have more impact)
 
     Args:
         store_to_swap: Store code of the store to swap.
         new_category: The new bl1_label category to swap to.
-        models: Dict with trained models for 'sales_per_sqm' and 'dwell_time'.
+        models: Dict with trained models for sales_per_sqm, dwell_time, footfall.
         encoders: Dictionary of LabelEncoders for categorical features.
         dim_blocks: Dimension table for blocks.
         store_total: Aggregated store data.
@@ -218,8 +219,9 @@ def predict_swap_impact(
     ##### Predict new store performance #####
     new_store_encoded = encode_features_for_prediction(new_store_features, encoders)
 
-    pred_sales = models["sales_per_sqm"].predict(new_store_encoded)[0]
-    pred_dwell = models["dwell_time"].predict(new_store_encoded)[0]
+    pred_footfall = models[col.TARGET_FOOTFALL].predict(new_store_encoded)[0]
+    pred_dwell = models[col.TARGET_DWELL_TIME].predict(new_store_encoded)[0]
+    pred_sales = models[col.TARGET_SALES_PER_SQM].predict(new_store_encoded)[0]
     pred_sri = category_sri_avg.get(
         new_category, 0.0
     )  # Default to 0 if category not found
@@ -232,31 +234,41 @@ def predict_swap_impact(
 
     # Get current store metrics (for delta calculation)
     if store_to_swap in current_store_performance.index:
-        current_store_sales = current_store_performance.loc[
-            store_to_swap, col.TARGET_SALES_PER_SQM
+        current_store_footfall = current_store_performance.loc[
+            store_to_swap, col.TARGET_FOOTFALL
         ]
         current_store_dwell = current_store_performance.loc[
             store_to_swap, col.TARGET_DWELL_TIME
         ]
+        current_store_sales = current_store_performance.loc[
+            store_to_swap, col.TARGET_SALES_PER_SQM
+        ]
     else:
-        current_store_sales = 0.0
+        current_store_footfall = 0.0
         current_store_dwell = 0.0
+        current_store_sales = 0.0
 
-    current_avg_sales = mall_perf[col.TARGET_SALES_PER_SQM].mean()
+    current_avg_footfall = mall_perf[col.TARGET_FOOTFALL].mean()
     current_avg_dwell = mall_perf[col.TARGET_DWELL_TIME].mean()
+    current_avg_sales = mall_perf[col.TARGET_SALES_PER_SQM].mean()
     # GLA-weighted SRI
     current_avg_sri = compute_gla_weighted_sri(mall_sri, mall_store_gla)
 
     ##### Compute new mall metrics (after swap) #####
-    # Update sales
-    new_mall_sales = mall_perf[col.TARGET_SALES_PER_SQM].copy()
-    new_mall_sales.loc[store_to_swap] = pred_sales
-    new_avg_sales = new_mall_sales.mean()
+    # Update footfall
+    new_mall_footfall = mall_perf[col.TARGET_FOOTFALL].copy()
+    new_mall_footfall.loc[store_to_swap] = pred_footfall
+    new_avg_footfall = new_mall_footfall.mean()
 
     # Update dwell
     new_mall_dwell = mall_perf[col.TARGET_DWELL_TIME].copy()
     new_mall_dwell.loc[store_to_swap] = pred_dwell
     new_avg_dwell = new_mall_dwell.mean()
+
+    # Update sales
+    new_mall_sales = mall_perf[col.TARGET_SALES_PER_SQM].copy()
+    new_mall_sales.loc[store_to_swap] = pred_sales
+    new_avg_sales = new_mall_sales.mean()
 
     # Update SRI (use category average for new store) - GLA-weighted
     new_mall_sri = mall_sri.copy()
@@ -289,35 +301,45 @@ def predict_swap_impact(
             "gla": store_gla,
             "gla_share": store_gla / mall_total_gla,
             "metrics": {
-                "sales_per_sqm": current_store_sales,
+                "footfall": current_store_footfall,
                 "dwell_time": current_store_dwell,
+                "sales_per_sqm": current_store_sales,
             },
         },
         "current_mall_metrics": {
             "mall_id": mall_id,
-            "avg_sales_per_sqm": current_avg_sales,
+            "avg_footfall": current_avg_footfall,
             "avg_dwell_time": current_avg_dwell,
+            "avg_sales_per_sqm": current_avg_sales,
             "avg_sri_gla_weighted": current_avg_sri,
             "composite_score": current_composite,
         },
         "predicted_mall_metrics": {
             "mall_id": mall_id,
-            "avg_sales_per_sqm": new_avg_sales,
+            "avg_footfall": new_avg_footfall,
             "avg_dwell_time": new_avg_dwell,
+            "avg_sales_per_sqm": new_avg_sales,
             "avg_sri_gla_weighted": new_avg_sri,
             "composite_score": new_composite,
         },
         "improvement": {
-            "sales_pct": ((new_avg_sales - current_avg_sales) / current_avg_sales)
-            * 100,
+            "footfall_pct": (
+                (new_avg_footfall - current_avg_footfall) / current_avg_footfall
+            )
+            * 100
+            if current_avg_footfall
+            else 0,
             "dwell_pct": ((new_avg_dwell - current_avg_dwell) / current_avg_dwell)
+            * 100,
+            "sales_pct": ((new_avg_sales - current_avg_sales) / current_avg_sales)
             * 100,
             "sri_pct": ((new_avg_sri - current_avg_sri) / current_avg_sri) * 100,
             "composite_pct": composite_improvement,
         },
         "new_store_predictions": {
-            "sales_per_sqm": pred_sales,
+            "footfall": pred_footfall,
             "dwell_time": pred_dwell,
+            "sales_per_sqm": pred_sales,
             "sri": pred_sri,
         },
     }

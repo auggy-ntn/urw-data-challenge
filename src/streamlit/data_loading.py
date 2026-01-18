@@ -168,11 +168,12 @@ def load_models_and_encoders():
         tuple: (models dict, encoders dict) or (None, None) if loading fails.
     """
     try:
-        # Load models for sales_per_sqm and dwell_time
+        # Load models for sales_per_sqm, dwell_time, and footfall
         models = {}
         encoders = {}
 
-        for target in [col.TARGET_SALES_PER_SQM, col.TARGET_DWELL_TIME]:
+        targets = [col.TARGET_SALES_PER_SQM, col.TARGET_DWELL_TIME, col.TARGET_FOOTFALL]
+        for target in targets:
             model_path = pth.MODELS_DIR / f"{target}_model.joblib"
             encoder_path = pth.MODELS_DIR / f"{target}_encoders.joblib"
 
@@ -232,12 +233,21 @@ def load_swap_predictor_data():
         store_performance[col.TARGET_DWELL_TIME] = store_metrics[
             col.MODEL_STORE_AVG_DWELL_TIME
         ]
+        # Compute footfall (average daily people_in)
+        store_performance[col.TARGET_FOOTFALL] = (
+            store_metrics[col.MODEL_STORE_TOTAL_PEOPLE_IN]
+            / store_metrics[col.MODEL_STORE_DAYS_RECORDED]
+        )
 
         # Load mall means for normalization
         if pth.MALL_MEANS.exists():
             mall_means_df = pd.read_csv(pth.MALL_MEANS)
             mall_means = {}
-            for target in [col.TARGET_SALES_PER_SQM, col.TARGET_DWELL_TIME]:
+            for target in [
+                col.TARGET_SALES_PER_SQM,
+                col.TARGET_DWELL_TIME,
+                col.TARGET_FOOTFALL,
+            ]:
                 target_rows = mall_means_df[mall_means_df["target"] == target]
                 mall_means[target] = dict(
                     zip(
@@ -252,7 +262,11 @@ def load_swap_predictor_data():
                 subset=[col.STORE_CODE]
             ).set_index(col.STORE_CODE)[col.MALL_ID]
 
-            for target in [col.TARGET_SALES_PER_SQM, col.TARGET_DWELL_TIME]:
+            for target in [
+                col.TARGET_SALES_PER_SQM,
+                col.TARGET_DWELL_TIME,
+                col.TARGET_FOOTFALL,
+            ]:
                 mall_mean_series = store_mall_ids.map(mall_means[target])
                 valid_idx = store_performance.index.intersection(mall_mean_series.index)
                 store_performance.loc[valid_idx, target] = (
