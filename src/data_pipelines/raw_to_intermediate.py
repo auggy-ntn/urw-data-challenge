@@ -109,9 +109,15 @@ def clean_store_financials(store_financials: pd.DataFrame) -> pd.DataFrame:
     """
     # Rename columns
     store_financials.columns = cols.STORE_FINANCIALS_COLUMNS
+    store_financials.rename(columns={cols.CODSTR: cols.STORE_CODE}, inplace=True)
 
     # Drop duplicates
     store_financials = store_financials.drop_duplicates()
+
+    # Replace invalid values with NaN
+    store_financials[cols.SALES_R12M] = pd.to_numeric(
+        store_financials[cols.SALES_R12M], errors="coerce"
+    )
 
     return store_financials
 
@@ -169,6 +175,7 @@ def process_raw_to_intermediate():
     cross_visits = clean_cross_visits(cross_visits)
 
     # Save intermediate data
+    pth.INTERMEDIATE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Saving intermediate dim_blocks to {pth.INTERMEDIATE_DIM_BLOCKS}")
     dim_blocks.to_csv(pth.INTERMEDIATE_DIM_BLOCKS, index=False)
 

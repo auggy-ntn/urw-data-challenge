@@ -302,5 +302,5 @@ dvc diff                # Compare versions
 ## Next Steps
 
 - Define your data pipeline in `dvc.yaml`
-- Create processing scripts in `src/`
-- Track experiments with MLflow (see [MLFLOW_WORKFLOW.md](MLFLOW_WORKFLOW.md))
+- Create processing scripts in `src/data_pipelines/`
+- Run the Streamlit dashboard: `uv run streamlit run src/streamlit/streamlit_app.py`

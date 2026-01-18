@@ -7,7 +7,6 @@ Complete setup instructions for new team members to get started with the project
 - Python 3.13+
 - Git
 - [uv](https://docs.astral.sh/uv/) package manager
-- Free Databricks account
 
 ## Step-by-Step Setup
 
@@ -26,7 +25,7 @@ uv sync
 ```
 
 This installs:
-- Core dependencies (pandas, mlflow, dvc, etc.)
+- Core dependencies (pandas, scikit-learn, streamlit, dvc, etc.)
 - Development tools (ruff, pre-commit, nbstripout)
 
 ### 3. Set Up Pre-commit Hooks
@@ -45,9 +44,9 @@ Create your `.env` file from the template:
 cp .env.example .env
 ```
 
-Now edit `.env` and add the credentials:
+Now edit `.env` and add the DVC credentials:
 
-#### A. OVH Object Storage (DVC - Data Storage)
+#### OVH Object Storage (DVC - Data Storage)
 
 **You'll receive these from the project owner:**
 
@@ -56,43 +55,7 @@ OVH_ACCESS_KEY_ID=<provided_by_owner>
 OVH_SECRET_ACCESS_KEY=<provided_by_owner>
 ```
 
-> ⚠️ **Note:** The owner will share these credentials securely. Do NOT create your own OVH account.
-
-#### B. Databricks (MLflow - Experiment Tracking)
-
-**You need to create a free Databricks account and get invited to the workspace:**
-
-1. **Create a free Databricks account:**
-   - Go to: https://www.databricks.com/try-databricks
-   - Sign up for free
-   - Choose "Get started with Community Edition" or free trial
-
-2. **Wait for workspace invitation:**
-   - The project owner will invite you to their workspace
-   - Check your email for the invitation
-   - Accept the invitation
-
-3. **Get your workspace URL:**
-   - After accepting, you'll be redirected to the workspace
-   - Copy the URL (e.g., `https://dbc-XXXXXX-XXXX.cloud.databricks.com`)
-
-4. **Generate your personal access token:**
-   - In Databricks, click your username (top right) → **Settings**
-   - Go to **Developer** → **Access Tokens**
-   - Click **Generate New Token**
-   - Give it a name (e.g., "data-challenge-local")
-   - Set expiration (90 days recommended)
-   - Click **Generate**
-   - **⚠️ COPY THE TOKEN NOW** (shown only once!)
-
-5. **Add to `.env`:**
-   ```bash
-   DATABRICKS_HOST=https://dbc-XXXXXX-XXXX.cloud.databricks.com
-   DATABRICKS_TOKEN=dapi...your_token_here...
-   MLFLOW_EXPERIMENT_ID=<provided_by_owner>
-   ```
-
-> 💡 **Tip:** The experiment ID will be provided by the project owner. It's the same for everyone on the team.
+> **Note:** The owner will share these credentials securely. Do NOT create your own OVH account.
 
 ### 5. Configure DVC Remote
 
@@ -129,22 +92,15 @@ dvc status
 # Should show: "Data and pipelines are up to date."
 ```
 
-#### Test MLflow:
-Create a test notebook or Python file:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
-
-import mlflow
-mlflow.set_tracking_uri("databricks")
-
-with mlflow.start_run(run_name="setup-test"):
-    mlflow.log_param("test", "success")
-    print("✓ MLflow connection successful!")
+#### Run the Pipeline:
+```bash
+dvc repro
 ```
 
-Run it and check the Databricks UI - you should see your test run! (Delete the test run afterward)
+#### Launch the Dashboard:
+```bash
+uv run streamlit run src/streamlit/streamlit_app.py
+```
 
 ## Troubleshooting
 
@@ -164,17 +120,6 @@ Run it and check the Databricks UI - you should see your test run! (Delete the t
 - Make sure you've configured the DVC remote (see above)
 - Ask the project owner to confirm you're using the right credentials
 
-### MLflow Issues
-
-**"Connection failed" or "Authentication error"**
-- Check that `DATABRICKS_HOST` matches your workspace URL exactly
-- Verify your token is valid (hasn't expired)
-- Confirm you've been invited to the workspace
-
-**"Experiment not found"**
-- Ask the project owner for the correct `MLFLOW_EXPERIMENT_ID`
-- Make sure you're connected to the right workspace
-
 ### General Issues
 
 **"Command not found: uv"**
@@ -184,14 +129,17 @@ Run it and check the Databricks UI - you should see your test run! (Delete the t
 - This project requires Python 3.13+
 - Check your version: `python --version`
 
+**Streamlit won't start**
+- Make sure you're in the project root directory
+- Try: `uv run streamlit run src/streamlit/streamlit_app.py`
+
 ## Next Steps
 
 - Read [DVC_WORKFLOW.md](DVC_WORKFLOW.md) to learn how to work with data
-- Read [MLFLOW_WORKFLOW.md](MLFLOW_WORKFLOW.md) to learn how to track experiments
 - Check the [README.md](../README.md) for project structure and commands
+- Explore the notebooks in `notebooks/` for data analysis examples
 
 ## Getting Help
 
-- Ask in the team Slack/Discord channel
 - Check existing documentation in `docs/`
 - Contact the project owner for credential issues
