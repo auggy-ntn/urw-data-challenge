@@ -15,6 +15,26 @@ URW_COLORS = {
     "border": "#E0E0E0",  # Light border gray
 }
 
+# Harmonious color palette for charts (retail mix, etc.)
+# Vibrant colors that work well on light backgrounds
+URW_CHART_COLORS = [
+    "#E4002B",  # URW Red (accent) - primary brand color
+    "#2E5A88",  # Navy blue
+    "#6B8E4E",  # Olive green
+    "#C4803C",  # Warm amber
+    "#7B5AA6",  # Muted purple
+    "#3D8B8B",  # Teal
+    "#C75B5B",  # Soft coral
+    "#5C7A3D",  # Forest green
+    "#8B6B4C",  # Warm brown
+    "#5B7B9A",  # Steel blue
+    "#9A7B5B",  # Camel
+    "#6B5B7B",  # Dusty purple
+    "#4A7B6B",  # Sage
+    "#9B5A5A",  # Dusty rose
+    "#7B8B5B",  # Moss green
+]
+
 
 def apply_urw_styling():
     """Apply URW corporate styling to the Streamlit app."""

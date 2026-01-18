@@ -7,7 +7,7 @@ import pandas as pd
 from constants import column_names as col
 from constants import constants as cst
 from src.streamlit.data_loading import get_mall_kpis
-from src.streamlit.looks import URW_COLORS
+from src.streamlit.looks import URW_CHART_COLORS, URW_COLORS
 import streamlit as st
 
 
@@ -203,19 +203,23 @@ def render_retail_mix_chart(kpis: dict):
         values="Percentage",
         names="Category",
         hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Set2,
+        color_discrete_sequence=URW_CHART_COLORS,
     )
 
     fig.update_traces(
         textposition="outside",
         textinfo="label+percent",
         textfont_size=12,
+        textfont_color=URW_COLORS["text"],
     )
 
     fig.update_layout(
         showlegend=False,
         margin={"t": 60, "b": 120, "l": 100, "r": 100},
         height=600,
+        paper_bgcolor=URW_COLORS["secondary"],  # Light gray background
+        plot_bgcolor=URW_COLORS["secondary"],
+        font_color=URW_COLORS["text"],
     )
 
     st.plotly_chart(fig, use_container_width=True)
