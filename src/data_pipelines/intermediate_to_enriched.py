@@ -70,6 +70,7 @@ def compute_category_sri_averages(
 
 def build_mall_kpis(
     dim_malls: pd.DataFrame,
+    dim_blocks: pd.DataFrame,
     fact_malls: pd.DataFrame,
     fact_stores: pd.DataFrame,
     store_financials: pd.DataFrame,
@@ -79,6 +80,7 @@ def build_mall_kpis(
 
     Args:
         dim_malls (pd.DataFrame): Mall general data.
+        dim_blocks (pd.DataFrame): Block & store general data.
         fact_malls (pd.DataFrame): Mall fact data.
         fact_stores (pd.DataFrame): Store fact data.
         store_financials (pd.DataFrame): Store financial data.
@@ -178,6 +180,28 @@ def build_mall_kpis(
 
     mall_kpis = mall_kpis.merge(
         mall_sales, left_index=True, right_index=True, how="left", validate="1:1"
+    )
+
+    # Create percentage distribution of bl1_label per mall
+    store_label_dist = (
+        dim_blocks.drop_duplicates(subset=[col.STORE_CODE])
+        .groupby([col.MALL_ID, col.CAT_HIGH])
+        .size()
+        .unstack(fill_value=0)
+    )
+
+    # Convert to percentages
+    store_label_pct = store_label_dist.div(store_label_dist.sum(axis=1), axis=0) * 100
+
+    # Rename columns to be more descriptive
+    store_label_pct.columns = [f"pct_{label}" for label in store_label_pct.columns]
+
+    mall_kpis = mall_kpis.merge(
+        store_label_pct,
+        left_index=True,
+        right_index=True,
+        how="left",
+        validate="1:1",
     )
 
     return mall_kpis
@@ -346,7 +370,9 @@ def process_intermediate_to_enriched():
 
     # Compute mall KPIs
     logger.info("Calculating mall KPIs")
-    mall_kpis = build_mall_kpis(dim_malls, fact_malls, fact_stores, store_financials)
+    mall_kpis = build_mall_kpis(
+        dim_malls, dim_blocks, fact_malls, fact_stores, store_financials
+    )
 
     # Compute store KPIs
     logger.info("Calculating store KPIs")

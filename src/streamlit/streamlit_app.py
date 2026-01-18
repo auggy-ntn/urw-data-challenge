@@ -263,6 +263,70 @@ def page_main_dashboard():
                 render_mall_card(mall)
 
 
+def render_retail_mix_chart(kpis: dict):
+    """Render a pie chart showing the retail category mix.
+
+    Args:
+        kpis: Dictionary containing mall KPIs including pct_* columns.
+    """
+    import math
+
+    import plotly.express as px
+
+    # Extract retail mix data (columns starting with 'pct_' but not 'pct_change')
+    retail_mix = {}
+    for key, value in kpis.items():
+        if (
+            key.startswith("pct_")
+            and not key.startswith("pct_change")
+            and value is not None
+            and not (isinstance(value, float) and math.isnan(value))
+            and value > 0
+        ):
+            category = key.replace("pct_", "")
+            retail_mix[category] = value
+
+    if not retail_mix:
+        # Debug: show available pct_ keys
+        pct_keys = [k for k in kpis.keys() if k.startswith("pct_")]
+        if pct_keys:
+            st.warning(f"Found pct_ columns but no valid values: {pct_keys[:5]}...")
+        else:
+            st.info("No retail mix data available")
+        return
+
+    # Create DataFrame for the pie chart
+    import pandas as pd
+
+    df = pd.DataFrame(
+        {"Category": list(retail_mix.keys()), "Percentage": list(retail_mix.values())}
+    )
+    df = df.sort_values("Percentage", ascending=False)
+
+    # Create pie chart with URW styling
+    fig = px.pie(
+        df,
+        values="Percentage",
+        names="Category",
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Set2,
+    )
+
+    fig.update_traces(
+        textposition="outside",
+        textinfo="label+percent",
+        textfont_size=12,
+    )
+
+    fig.update_layout(
+        showlegend=False,
+        margin={"t": 60, "b": 120, "l": 100, "r": 100},
+        height=600,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def page_mall_detail():
     """Detailed view for a specific mall."""
     mall_id = st.session_state.get("selected_mall")
@@ -327,6 +391,13 @@ def page_mall_detail():
             )
         with col3:
             render_kpi_card("Revenue (M€)", revenue_str, None)
+
+    st.divider()
+
+    # Retail Mix Pie Chart
+    st.subheader("Retail Mix")
+    if kpis:
+        render_retail_mix_chart(kpis)
 
     st.divider()
 
