@@ -362,7 +362,7 @@ def process_intermediate_to_enriched():
 
     # Compute category affinities
     logger.info("Calculating category affinities")
-    affinity_results = create_affinity_results(cross_visits, dim_blocks)
+    affinity_results = create_affinity_results(cross_visits, dim_blocks, fact_stores)
 
     # Compute average SRI scores per category
     logger.info("Calculating category SRI averages")

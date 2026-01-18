@@ -1,102 +1,63 @@
-import pandas as pd
-
-
-# 1. Define Jaccard Calculation Function
-def calculate_jaccard(df):
-    """Calculates the Jaccard Similarity Index based solely on cross-visit volume."""
-    # Create a copy to avoid SettingWithCopy warnings on the original dataframe
-    df = df.copy()
-
-    # Calculate "Proxy Totals" (Network Footprint) for each store
-    all_visits = pd.concat(
-        [
-            df[["store_code_1", "total_cross_visits"]].rename(
-                columns={"store_code_1": "store_id"}
-            ),
-            df[["store_code_2", "total_cross_visits"]].rename(
-                columns={"store_code_2": "store_id"}
-            ),
-        ]
-    )
-
-    # Group by store ID to get the total sum of all cross-visits involving this store
-    store_sums = all_visits.groupby("store_id")["total_cross_visits"].sum()
-
-    # Map these totals back to the original dataframe
-    df["sum_1"] = df["store_code_1"].map(store_sums)
-    df["sum_2"] = df["store_code_2"].map(store_sums)
-
-    # Calculate Jaccard Score
-    # Formula: Intersection / (Total_A + Total_B - Intersection)
-    union = df["sum_1"] + df["sum_2"] - df["total_cross_visits"]
-
-    # Vectorized approach (cleaner)
-    mask = union > 0
-    df.loc[mask, "jaccard_score"] = df.loc[mask, "total_cross_visits"] / union.loc[mask]
-    df.loc[~mask, "jaccard_score"] = 0
-
-    # Cleanup
-    df.drop(columns=["sum_1", "sum_2"], inplace=True)
-
-    return df.sort_values(by="jaccard_score", ascending=False)
-
-
-# 2. Define Category Affinity Function
-def calculate_category_affinity(jaccard_df, dim_block_df):
-    """Aggregates store-to-store Jaccard scores into category-to-category affinities."""
-    # Merge Category for Store 1
-    df_merged = jaccard_df.merge(
-        dim_block_df[["store_code", "bl1_label"]],
+def create_affinity_results(cross_visits, dim_blocks, fact_stores):
+    """Calculates Cosine Similarity scores for store pairs based on cross-visits."""
+    total_cross_visits = cross_visits.merge(
+        dim_blocks[["store_code", "bl1_label"]],
         left_on="store_code_1",
         right_on="store_code",
-        how="inner",
-    ).rename(columns={"bl1_label": "category_1"})
-
-    df_merged.drop(columns=["store_code"], inplace=True)
-
-    # Merge Category for Store 2
-    df_merged = df_merged.merge(
-        dim_block_df[["store_code", "bl1_label"]],
+    ).merge(
+        dim_blocks[["store_code", "bl1_label"]],
         left_on="store_code_2",
         right_on="store_code",
-        how="inner",
-    ).rename(columns={"bl1_label": "category_2"})
+    )[
+        [
+            "store_code_1",
+            "store_code_2",
+            "total_cross_visits",
+            "bl1_label_x",
+            "bl1_label_y",
+        ]
+    ]
 
-    df_merged.drop(columns=["store_code"], inplace=True)
-
-    # Create unified "Pair" identifier
-    df_merged["category_pair"] = df_merged.apply(
-        lambda x: tuple(sorted([str(x["category_1"]), str(x["category_2"])])), axis=1
-    )
-
-    # Aggregate by Category Pair
-    category_affinity = (
-        df_merged.groupby("category_pair")["jaccard_score"]
-        .agg(["mean", "count", "sum"])
+    grouped_cross_visits = (
+        total_cross_visits.groupby(["bl1_label_x", "bl1_label_y"])
+        .agg("sum")["total_cross_visits"]
         .reset_index()
     )
 
-    # Split the tuple back into two columns
-    category_affinity[["cat_A", "cat_B"]] = pd.DataFrame(
-        category_affinity["category_pair"].tolist(), index=category_affinity.index
+    merged = fact_stores.merge(
+        dim_blocks[["store_code", "bl1_label"]],
+        left_on="store_code",
+        right_on="store_code",
+    )[["store_code", "people_in", "bl1_label"]]
+
+    grouped_visits = merged.groupby("bl1_label").agg("sum")["people_in"].reset_index()
+    grouped_visits = grouped_visits.rename(
+        columns={"people_in": "proxy_total_visits", "bl1_label": "category"}
     )
 
-    # Rename for clarity
-    category_affinity = category_affinity.rename(
+    df_cosine = grouped_cross_visits.merge(
+        grouped_visits, left_on="bl1_label_x", right_on="category"
+    ).rename(columns={"proxy_total_visits": "size_x"})
+
+    df_cosine = df_cosine.merge(
+        grouped_visits, left_on="bl1_label_y", right_on="category"
+    ).rename(columns={"proxy_total_visits": "size_y"})
+
+    df_cosine["cosine_score"] = (
+        10**4
+        * df_cosine["total_cross_visits"]
+        / ((df_cosine["size_x"] * df_cosine["size_y"]) ** 0.8)
+    )
+
+    output = df_cosine[["bl1_label_x", "bl1_label_y", "cosine_score"]].sort_values(
+        by="cosine_score", ascending=False
+    )
+    output.rename(
         columns={
-            "mean": "avg_jaccard_strength",
-            "count": "number_of_pairs",
-            "sum": "total_interaction_volume",
-        }
+            "bl1_label_x": "cat_A",
+            "bl1_label_y": "cat_B",
+            "cosine_score": "similarity_score",
+        },
+        inplace=True,
     )
-
-    return category_affinity[
-        ["cat_A", "cat_B", "avg_jaccard_strength", "number_of_pairs"]
-    ].sort_values(by="avg_jaccard_strength", ascending=False)
-
-
-def create_affinity_results(cross_visits_df, dim_block_df):
-    """Wrapper function to create category affinity results from cross-visit data."""
-    jaccard_results = calculate_jaccard(cross_visits_df)
-    affinity_results = calculate_category_affinity(jaccard_results, dim_block_df)
-    return affinity_results
+    return output
