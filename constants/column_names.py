@@ -126,7 +126,7 @@ CROSS_VISITS_COLUMNS = [
 # category_affinities
 CATEGORY_A = "cat_A"
 CATEGORY_B = "cat_B"
-AFFINITY = "avg_jaccard_strength"
+AFFINITY = "similarity_score"
 NB_PAIRS = "nb_pairs"
 
 # Mall and Store KPIs
