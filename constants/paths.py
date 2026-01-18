@@ -12,6 +12,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 INTERMEDIATE_DATA_DIR = DATA_DIR / "intermediate"
+ENRICHED_DATA_DIR = DATA_DIR / "enriched"
 
 # Raw data files
 DIM_MALLS = RAW_DATA_DIR / "dim_malls_v1.csv"
@@ -31,9 +32,20 @@ INTERMEDIATE_STORE_FINANCIALS = INTERMEDIATE_DATA_DIR / "store_financials.csv"
 INTERMEDIATE_CROSS_VISITS = INTERMEDIATE_DATA_DIR / "cross_visits.csv"
 INTERMEDIATE_FACT_SRI_SCORES = INTERMEDIATE_DATA_DIR / "fact_sri_scores.csv"
 
+# Enriched data files
+ENRICHED_CATEGORY_AFFINITIES = ENRICHED_DATA_DIR / "category_affinities.csv"
+ENRICHED_STORE_METRICS = ENRICHED_DATA_DIR / "store_metrics.csv"  # For modelling
+ENRICHED_STORE_KPIS = ENRICHED_DATA_DIR / "store_kpis.csv"  # For dashboard
+ENRICHED_CATEGORY_SRI_AVG = ENRICHED_DATA_DIR / "category_sri_avg.csv"
+ENRICHED_MALL_KPIS = ENRICHED_DATA_DIR / "mall_kpis.csv"
+
 
 # Configuration directory
 CONFIG_DIR = PROJECT_ROOT / "config"
+
+# Models directory
+MODELS_DIR = PROJECT_ROOT / "models"
+MALL_MEANS = MODELS_DIR / "mall_means.csv"
 
 # Notebooks directory
 

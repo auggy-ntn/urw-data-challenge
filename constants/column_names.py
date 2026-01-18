@@ -1,5 +1,7 @@
 """Column names used across the project."""
 
+from constants.constants import WINDOW_SIZE
+
 ########## RAW DATA COLUMN NAMES ##########
 
 # dim_blocks
@@ -117,3 +119,44 @@ CROSS_VISITS_COLUMNS = [
 
 
 ########## INTERMEDIATE DATA COLUMN NAMES ##########
+
+
+########## ENRICHED DATA COLUMN NAMES ##########
+
+# category_affinities
+CATEGORY_A = "cat_A"
+CATEGORY_B = "cat_B"
+AFFINITY = "avg_jaccard_strength"
+NB_PAIRS = "nb_pairs"
+
+# Mall and Store KPIs
+TOTAL_MALL_SALES = "total_mall_sales_r12m_millions"  # Specific to mall_kpis
+OCR = "ocr"  # Specific to store_kpis
+DAILY_PEOPLE_IN_LAST_XM = f"daily_people_in_last_{WINDOW_SIZE}m"
+AVG_DWELL_TIME_LAST_XM = f"avg_dwell_time_last_{WINDOW_SIZE}m"
+DAILY_PEOPLE_IN_BEFORE_XM = f"daily_people_in_before_{WINDOW_SIZE}m"
+AVG_DWELL_TIME_BEFORE_XM = f"avg_dwell_time_before_{WINDOW_SIZE}m"
+PCT_CHANGE_PEOPLE_IN = "pct_change_people_in"
+PCT_CHANGE_AVG_DWELL_TIME = "pct_change_avg_dwell_time"
+
+
+########## MODEL FEATURES COLUMN NAMES ##########
+MODEL_STORE_GLA = "gla"
+MODEL_STORE_GLA_CAT = "gla_category"
+MODEL_STORE_CATEGORY = "store_category"
+MODEL_STORE_AVG_WINDOW_FLOW = "avg_window_flow"
+MODEL_STORE_MEDIAN_WINDOW_FLOW = "median_window_flow"
+MODEL_STORE_TOTAL_PEOPLE_IN = "total_people_in"
+MODEL_STORE_TOTAL_WINDOW_FLOW = "total_window_flow"
+MODEL_STORE_DAYS_RECORDED = "days_recorded"
+MODEL_STORE_AVG_DWELL_TIME = "avg_dwell_time"
+MODEL_STORE_NEIGHBORHOOD_SYNERGY = "neighborhood_synergy"
+MODEL_STORE_NB_NEIGHBORS = "nb_neighbors"
+MODEL_MALL_TOTAL_GLA = "mall_total_gla"
+MODEL_MALL_STORE_COUNT = "mall_store_count"
+MODEL_MALL_CATEGORY_SHARE = "mall_category_share"
+
+# Targets
+TARGET_CAPTURE_RATE = "capture_rate"
+TARGET_SALES_PER_SQM = "sales_per_sqm"
+TARGET_DWELL_TIME = "dwell_time"
