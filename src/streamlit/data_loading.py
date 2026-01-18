@@ -7,7 +7,18 @@ from constants import column_names as col
 from constants import paths as pth
 import constants.constants as cst
 from src.utils.logger import logger
+from src.utils.trend_calculator import (
+    FORECAST_HORIZON_LABELS,
+    TIME_HORIZON_LABELS,
+    calculate_category_trends,
+    forecast_category_trends,
+    load_stores_enriched,
+)
 import streamlit as st
+
+# =============================================================================
+# MALL DATA LOADING
+# =============================================================================
 
 
 @st.cache_data
@@ -324,3 +335,59 @@ def get_all_categories():
     except Exception as e:
         logger.error(f"Error loading categories: {e}")
         return []
+
+
+# =============================================================================
+# TREND DATA LOADING
+# =============================================================================
+
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def get_stores_enriched():
+    """Load enriched store data for trend calculations.
+
+    Returns:
+        pd.DataFrame: Enriched store data with date, people_in, categories.
+    """
+    return load_stores_enriched()
+
+
+@st.cache_data(ttl=3600)
+def get_category_trends(mall_id: int | None = None) -> pd.DataFrame:
+    """Get historical growth rates for all categories.
+
+    Args:
+        mall_id: Optional mall ID. None = global (all malls).
+
+    Returns:
+        DataFrame with growth rates for each category and time horizon.
+    """
+    stores = get_stores_enriched()
+    if stores.empty:
+        return pd.DataFrame()
+    return calculate_category_trends(stores, mall_id)
+
+
+@st.cache_data(ttl=3600)
+def get_category_forecasts(mall_id: int | None = None) -> pd.DataFrame:
+    """Get forecasted growth rates for all categories.
+
+    Args:
+        mall_id: Optional mall ID. None = global (all malls).
+
+    Returns:
+        DataFrame with forecasted growth rates for each category.
+    """
+    stores = get_stores_enriched()
+    if stores.empty:
+        return pd.DataFrame()
+    return forecast_category_trends(stores, mall_id)
+
+
+def get_trend_horizon_options():
+    """Get dropdown options for time horizons.
+
+    Returns:
+        tuple: (historical_options, forecast_options) as dicts.
+    """
+    return TIME_HORIZON_LABELS, FORECAST_HORIZON_LABELS

@@ -2,6 +2,8 @@
 
 import math
 
+import pandas as pd
+
 from constants import column_names as col
 from constants import constants as cst
 from src.streamlit.data_loading import get_mall_kpis
@@ -488,3 +490,269 @@ def render_swap_predictor(mall_id: int):
         mall_means = swap_data.get("mall_means")
         weights = st.session_state.get("swap_weights")
         render_swap_results(result, mall_means, weights)
+
+
+# =============================================================================
+# TREND COMPONENTS
+# =============================================================================
+
+
+def get_trend_color(growth_rate: float) -> str:
+    """Get color based on growth rate.
+
+    Args:
+        growth_rate: Percentage growth rate.
+
+    Returns:
+        Hex color string.
+    """
+    if pd.isna(growth_rate):
+        return URW_COLORS["text_muted"]
+    elif growth_rate > 2:
+        return URW_COLORS["success"]
+    elif growth_rate < -2:
+        return URW_COLORS["danger"]
+    else:
+        return URW_COLORS["warning"]
+
+
+def get_trend_badge_style(trend: str) -> tuple[str, str]:
+    """Get badge background and text color for trend classification.
+
+    Args:
+        trend: Trend classification string.
+
+    Returns:
+        Tuple of (background_color, text_color).
+    """
+    if trend in ("Strongly Emerging", "Emerging"):
+        return f"{URW_COLORS['success']}20", URW_COLORS["success"]
+    elif trend in ("Strongly Declining", "Declining"):
+        return f"{URW_COLORS['danger']}20", URW_COLORS["danger"]
+    elif trend == "Stable":
+        return f"{URW_COLORS['warning']}20", URW_COLORS["warning"]
+    else:
+        return f"{URW_COLORS['text_muted']}20", URW_COLORS["text_muted"]
+
+
+def render_trend_card(
+    category: str,
+    historical_growth: float,
+    forecast_growth: float,
+    historical_trend: str,
+    forecast_trend: str,
+):
+    """Render a styled trend card using CSS classes from looks.py.
+
+    Layout:
+    ┌─────────────────────────────────────┐
+    │         Category Name               │
+    ├──────────────────┬──────────────────┤
+    │    Historical    │     Forecast     │
+    │    ↑ +5.2%       │    ↑ +3.1%       │
+    │     Emerging     │      Stable      │
+    └──────────────────┴──────────────────┘
+    """
+    # Truncate long category names
+    display_name = category if len(category) <= 22 else category[:20] + "…"
+
+    # Format delta with separate arrow and value spans for styling
+    def format_delta(val):
+        if pd.isna(val):
+            return (
+                '<span class="trend-card-delta neutral">'
+                '<span class="value">—</span></span>'
+            )
+        if val > 0:
+            arrow = "↑"
+            delta_class = "positive"
+        elif val < 0:
+            arrow = "↓"
+            delta_class = "negative"
+        else:
+            return (
+                f'<span class="trend-card-delta neutral">'
+                f'<span class="value">{val:+.1f}%</span></span>'
+            )
+        return (
+            f'<span class="trend-card-delta {delta_class}">'
+            f'<span class="arrow">{arrow}</span>'
+            f'<span class="value">{val:+.1f}%</span>'
+            f"</span>"
+        )
+
+    hist_delta = format_delta(historical_growth)
+    fore_delta = format_delta(forecast_growth)
+
+    # Default trend labels if missing
+    hist_trend = historical_trend if pd.notna(historical_trend) else "—"
+    fore_trend = forecast_trend if pd.notna(forecast_trend) else "—"
+
+    # Build card HTML using CSS classes defined in looks.py
+    st.markdown(
+        f"""
+        <div class="trend-card">
+            <div class="trend-card-title">{display_name}</div>
+            <div class="trend-card-content">
+                <div class="trend-card-side">
+                    <div class="trend-card-label">Historical</div>
+                    {hist_delta}
+                    <div class="trend-card-qualifier">{hist_trend}</div>
+                </div>
+                <div class="trend-card-side">
+                    <div class="trend-card-label">Forecast</div>
+                    {fore_delta}
+                    <div class="trend-card-qualifier">{fore_trend}</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_trend_section(
+    historical_df: pd.DataFrame,
+    forecast_df: pd.DataFrame,
+    historical_horizon: str,
+    forecast_horizon: str,
+    title: str = "Category Trends",
+    columns: int = 6,
+    show_sample_warning: bool = False,
+):
+    """Render the full trend section with all category cards.
+
+    Args:
+        historical_df: DataFrame with historical growth rates.
+        forecast_df: DataFrame with forecast growth rates.
+        historical_horizon: Selected historical time horizon key.
+        forecast_horizon: Selected forecast horizon key.
+        title: Section title.
+        columns: Number of columns in the grid.
+        show_sample_warning: If True, display a disclaimer about small sample sizes.
+    """
+    from src.streamlit.data_loading import get_trend_horizon_options
+
+    time_labels, forecast_labels = get_trend_horizon_options()
+
+    st.subheader(title)
+
+    # Time horizon selectors
+    col1, col2, col3 = st.columns([2, 2, 4])
+
+    with col1:
+        hist_options = list(time_labels.keys())
+        hist_index = (
+            hist_options.index(historical_horizon)
+            if historical_horizon in hist_options
+            else 1
+        )
+        selected_hist = st.selectbox(
+            "Historical Window",
+            options=hist_options,
+            index=hist_index,
+            format_func=lambda x: time_labels[x],
+            key=f"hist_horizon_{title}",
+        )
+
+    with col2:
+        fore_options = list(forecast_labels.keys())
+        fore_index = (
+            fore_options.index(forecast_horizon)
+            if forecast_horizon in fore_options
+            else 0
+        )
+        selected_fore = st.selectbox(
+            "Forecast Horizon",
+            options=fore_options,
+            index=fore_index,
+            format_func=lambda x: forecast_labels[x],
+            key=f"fore_horizon_{title}",
+        )
+
+    # Show sample size warning for individual malls
+    if show_sample_warning:
+        st.caption(
+            "⚠️ *Forecasts for individual malls are based on limited data "
+            "and may be less reliable than portfolio-level trends.*"
+        )
+
+    # Merge historical and forecast data
+    if historical_df.empty:
+        st.info("No trend data available")
+        return selected_hist, selected_fore
+
+    # Get column names for selected horizons
+    hist_growth_col = f"{selected_hist}_growth"
+    hist_trend_col = f"{selected_hist}_trend"
+    fore_growth_col = f"{selected_fore}_growth"
+    fore_trend_col = f"{selected_fore}_trend"
+
+    # Check if required historical column exists
+    if hist_growth_col not in historical_df.columns:
+        st.warning(
+            f"No data available for {time_labels.get(selected_hist, selected_hist)}"
+        )
+        return selected_hist, selected_fore
+
+    # Select historical data columns
+    cols_to_select = ["category", hist_growth_col]
+    if hist_trend_col in historical_df.columns:
+        cols_to_select.append(hist_trend_col)
+
+    merged = historical_df[cols_to_select].copy()
+
+    # Add trend column if missing
+    if hist_trend_col not in merged.columns:
+        merged[hist_trend_col] = "No Data"
+
+    if not forecast_df.empty and fore_growth_col in forecast_df.columns:
+        forecast_cols = ["category", fore_growth_col]
+        if fore_trend_col in forecast_df.columns:
+            forecast_cols.append(fore_trend_col)
+        forecast_subset = forecast_df[forecast_cols].copy()
+
+        # Rename forecast columns to avoid collision with historical columns
+        # (e.g., both might have 1_month_growth if user selects same horizon)
+        forecast_subset = forecast_subset.rename(
+            columns={
+                fore_growth_col: "fore_growth",
+                fore_trend_col: "fore_trend",
+            }
+        )
+
+        merged = merged.merge(forecast_subset, on="category", how="left")
+
+        # Map back to expected column names
+        fore_growth_col = "fore_growth"
+        fore_trend_col = "fore_trend"
+    else:
+        merged["fore_growth"] = pd.NA
+        merged["fore_trend"] = "No Data"
+        fore_growth_col = "fore_growth"
+        fore_trend_col = "fore_trend"
+
+    # Sort alphabetically by category name for consistent ordering
+    merged = merged.sort_values("category", ascending=True)
+
+    # Render cards in a grid
+    categories = merged["category"].tolist()
+    num_categories = len(categories)
+    rows = math.ceil(num_categories / columns)
+
+    for row_idx in range(rows):
+        cols = st.columns(columns)
+        for col_idx in range(columns):
+            cat_idx = row_idx * columns + col_idx
+            if cat_idx < num_categories:
+                cat_data = merged.iloc[cat_idx]
+                with cols[col_idx]:
+                    render_trend_card(
+                        category=cat_data["category"],
+                        historical_growth=cat_data[hist_growth_col],
+                        forecast_growth=cat_data.get(fore_growth_col),
+                        historical_trend=cat_data[hist_trend_col],
+                        forecast_trend=cat_data.get(fore_trend_col, "No Data"),
+                    )
+
+    return selected_hist, selected_fore
