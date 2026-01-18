@@ -127,7 +127,6 @@ CROSS_VISITS_COLUMNS = [
 CATEGORY_A = "cat_A"
 CATEGORY_B = "cat_B"
 AFFINITY = "similarity_score"
-NB_PAIRS = "nb_pairs"
 
 # Mall and Store KPIs
 TOTAL_MALL_SALES = "total_mall_sales_r12m_millions"  # Specific to mall_kpis
