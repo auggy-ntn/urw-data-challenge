@@ -1,4 +1,3 @@
-# import seaborn as sns
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -63,10 +62,6 @@ def build_graph(cross_visits):
 
 def enhance_nodes_and_compute_metrics(G, dim_blocks, store_financials):
     """Add metadata to nodes and calculate metrics."""
-    # Merge metadata for easier lookup
-    # Assuming store_code in dim_blocks matches nodes
-    # store_financials has 'codstr' which matches 'store_code'
-
     # Metrics calculation
     degree_centrality = nx.degree_centrality(G)
     weighted_degree = dict(G.degree(weight="weight"))
@@ -110,9 +105,7 @@ def calculate_influence_score_and_summary(G):
     df_nodes = pd.DataFrame(node_data)
 
     # Define Influence Score
-    # Custom metric: let's define it as a combination of weighted degree
-    # (flow volume) and degree centrality (reach)
-    # Normalized to be comparable
+    # Custom metric: combination of weighted degree (flow) and degree centrality (reach)
     if not df_nodes.empty:
         df_nodes["norm_weighted_degree"] = (
             df_nodes["weighted_degree"] / df_nodes["weighted_degree"].max()
@@ -121,13 +114,12 @@ def calculate_influence_score_and_summary(G):
             df_nodes["degree_centrality"] / df_nodes["degree_centrality"].max()
         )
 
-        # Simple weighted average
         df_nodes["influence_score"] = (0.7 * df_nodes["norm_weighted_degree"]) + (
             0.3 * df_nodes["norm_degree_centrality"]
         )
 
-        top_10 = df_nodes.sort_values("influence_score", ascending=False).head(10)
-        return df_nodes, top_10
+        top_15 = df_nodes.sort_values("influence_score", ascending=False).head(15)
+        return df_nodes, top_15
     return pd.DataFrame(), pd.DataFrame()
 
 
@@ -146,22 +138,7 @@ def create_synergy_matrix(cross_visits, dim_blocks):
     # Drop rows where category is missing
     df = df.dropna(subset=["cat_1", "cat_2"])
 
-    # Aggregate
-    # summing total visits between categories and dividing by count of links or similar?
-    # User asked for "average number of cross-visits", so mean()
-
-    # Sort categories to ensure (A, B) is same as (B, A) for grouping if directed,
-    # but here we have explicit pairs
-    # Assuming cross_visits might be undirected (A-B) or directed.
-    # Usually provided as unique pairs.
-    # Let's treat (cat_1, cat_2) as a pair.
-
-    # We need to make sure Cat A - Cat B includes both Cat A -> Cat B
-    # and Cat B -> Cat A directions if the data separates them
-    # OR just group by sorted tuple.
-
-    # For a Matrix, we want a Pivot Table.
-
+    # Aggregate: Average cross-visits
     synergy_df = (
         df.groupby(["cat_1", "cat_2"])["total_cross_visits"].mean().reset_index()
     )
@@ -172,6 +149,91 @@ def create_synergy_matrix(cross_visits, dim_blocks):
     )
 
     return matrix
+
+
+def plot_category_network_graph(cross_visits, dim_blocks, output_path):
+    """Plot the network graph with Categories as nodes."""
+    print("Generating category network graph...")
+
+    # Map stores to categories
+    store_cat_map = dict(
+        zip(dim_blocks["store_code"], dim_blocks["bl3_label"], strict=False)
+    )
+
+    # Prepare data
+    df = cross_visits.copy()
+    df["cat_1"] = df["store_code_1"].map(store_cat_map)
+    df["cat_2"] = df["store_code_2"].map(store_cat_map)
+    df = df.dropna(subset=["cat_1", "cat_2"])
+
+    # Aggregate cross-visits by category pair (undirected)
+    # Create a sorted tuple to treat (A, B) and (B, A) as the same edge
+    df["pair"] = df.apply(lambda x: tuple(sorted([x["cat_1"], x["cat_2"]])), axis=1)
+
+    # Group and sum
+    agg_df = df.groupby("pair")["total_cross_visits"].sum().reset_index()
+
+    # Build Graph
+    G = nx.Graph()
+    for _, row in agg_df.iterrows():
+        u, v = row["pair"]
+        w = row["total_cross_visits"]
+        if u != v:  # Skip self-loops for cleaner visualization
+            G.add_edge(u, v, weight=w)
+
+    # Compute Node Metrics for Sizing
+    # Size by Weighted Degree (Total Traffic)
+    weighted_degree = dict(G.degree(weight="weight"))
+    if not weighted_degree:
+        print("Graph is empty.")
+        return
+
+    # Normalize sizes
+    max_deg = max(weighted_degree.values())
+    node_sizes = [5000 * (weighted_degree[n] / max_deg) + 100 for n in G.nodes()]
+
+    # Normalize edge widths
+    weights = [G.edges[e]["weight"] for e in G.edges()]
+    max_weight = max(weights) if weights else 1
+    edge_widths = [15 * (w / max_weight) + 0.5 for w in weights]
+
+    # Plot
+    plt.figure(figsize=(15, 15))
+    pos = nx.spring_layout(G, k=2.0, seed=42)  # High k for spatial separation
+
+    # Draw Nodes
+    nx.draw_networkx_nodes(
+        G,
+        pos,
+        node_size=node_sizes,
+        node_color="skyblue",
+        alpha=0.9,
+        edgecolors="white",
+    )
+
+    # Draw Edges
+    nx.draw_networkx_edges(G, pos, width=edge_widths, alpha=0.6, edge_color="navy")
+
+    # Draw Labels with background box for readability
+    # labels = {n: n for n in G.nodes()}
+    # Draw labels manually to add bbox
+    for node, (x, y) in pos.items():
+        plt.text(
+            x,
+            y,
+            node,
+            fontsize=9,
+            fontweight="bold",
+            ha="center",
+            va="center",
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="none", alpha=0.7),
+        )
+
+    plt.title("Category Synergy Network (Node Size = Total Traffic)")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(output_path)
+    print(f"Network graph saved to {output_path}")
 
 
 def main():
@@ -190,11 +252,11 @@ def main():
     G = enhance_nodes_and_compute_metrics(G, dim_blocks, store_financials)
 
     print("Calculating influence scores...")
-    df_nodes, top_10 = calculate_influence_score_and_summary(G)
+    df_nodes, top_15 = calculate_influence_score_and_summary(G)
 
-    print("\nTop 10 Stores by Influence Score:")
+    print("\\nTop 15 Stores by Influence Score:")
     print(
-        top_10[
+        top_15[
             [
                 "store_code",
                 "bl3_label",
@@ -204,18 +266,20 @@ def main():
             ]
         ]
     )
-    top_10.to_csv(OUTPUT_DIR / "top_10_stores.csv", index=False)
+    top_15.to_csv(OUTPUT_DIR / "top_15_stores.csv", index=False)
+    df_nodes.to_csv(OUTPUT_DIR / "df_nodes.csv", index=False)
+
+    # Visualize Network Graph
+    print("Visualizing Category Network Graph...")
+    plot_category_network_graph(
+        cross_visits, dim_blocks, OUTPUT_DIR / "category_network_graph.png"
+    )
 
     print("Creating Synergy Matrix...")
     synergy_matrix = create_synergy_matrix(cross_visits, dim_blocks)
 
-    # Plotting
+    # Plotting Heatmap
     plt.figure(figsize=(12, 10))
-    # Select top 10 categories by total interaction volume for readable heatmap
-    # if too large
-    # For now, plot all or top N based on matrix size
-
-    # If matrix is huge, subset it.
     if synergy_matrix.shape[0] > 20:
         # Filter for top categories
         top_cats = (
@@ -225,7 +289,6 @@ def main():
     else:
         plot_matrix = synergy_matrix
 
-    # sns.heatmap(plot_matrix, annot=True, fmt='.1f', cmap='viridis')
     plt.imshow(plot_matrix, cmap="viridis", aspect="auto")
     plt.colorbar(label="Avg Cross-Visits")
 
