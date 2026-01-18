@@ -157,9 +157,129 @@ def apply_urw_styling():
             color: white !important;
         }}
 
+        /* Selectbox styling - white with gray outline and black text */
+        [data-testid="stSelectbox"] {{
+            color: {URW_COLORS["text"]} !important;
+        }}
+
+        [data-testid="stSelectbox"] > div > div {{
+            background-color: {URW_COLORS["primary"]} !important;
+            border: 1px solid {URW_COLORS["border"]} !important;
+            border-radius: 4px;
+            color: {URW_COLORS["text"]} !important;
+        }}
+
+        [data-testid="stSelectbox"] label {{
+            color: {URW_COLORS["text"]} !important;
+        }}
+
+        [data-testid="stSelectbox"] div[data-baseweb="select"] span {{
+            color: {URW_COLORS["text"]} !important;
+        }}
+
+        [data-testid="stSelectbox"] svg {{
+            fill: {URW_COLORS["text"]} !important;
+        }}
+
         /* Divider */
         hr {{
             border-color: {URW_COLORS["border"]};
+        }}
+
+        /* Trend card styling - matches st.metric exactly */
+        .trend-card {{
+            background-color: {URW_COLORS["primary"]};
+            border: 1px solid {URW_COLORS["border"]};
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 8px;
+        }}
+
+        .trend-card-title {{
+            color: {URW_COLORS["text"]};
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            text-align: center;
+        }}
+
+        .trend-card-content {{
+            display: flex;
+            justify-content: space-between;
+        }}
+
+        .trend-card-side {{
+            flex: 1;
+            text-align: center;
+            padding: 0 8px;
+        }}
+
+        .trend-card-side:first-child {{
+            border-right: 1px solid {URW_COLORS["border"]};
+        }}
+
+        /* Match stMetricLabel exactly */
+        .trend-card-label {{
+            color: {URW_COLORS["text_muted"]} !important;
+            text-transform: uppercase;
+            font-size: 0.75rem !important;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }}
+
+        /* Match stMetricDelta exactly - Streamlit's delta styling */
+        .trend-card-delta {{
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.875rem;
+            font-weight: 400;
+            padding: 4px 8px;
+            border-radius: 0.25rem;
+            margin-bottom: 8px;
+        }}
+
+        /* Background colors for positive/negative */
+        .trend-card-delta.positive {{
+            background-color: rgba(33, 195, 84, 0.2) !important;
+        }}
+
+        .trend-card-delta.negative {{
+            background-color: rgba(255, 43, 43, 0.2) !important;
+        }}
+
+        .trend-card-delta.neutral {{
+            background-color: transparent;
+        }}
+
+        /* Arrow colors - match Streamlit metric */
+        .trend-card-delta .arrow {{
+            font-weight: 600;
+        }}
+
+        .trend-card-delta.positive .arrow {{
+            color: #21c354 !important;
+        }}
+
+        .trend-card-delta.negative .arrow {{
+            color: #ff2b2b !important;
+        }}
+
+        /* Number/percentage is always black */
+        .trend-card-delta .value {{
+            color: {URW_COLORS["text"]} !important;
+        }}
+
+        .trend-card-delta.neutral .value {{
+            color: {URW_COLORS["text_muted"]} !important;
+        }}
+
+        .trend-card-qualifier {{
+            color: {URW_COLORS["text_muted"]};
+            font-size: 0.75rem;
+            min-height: 2.4em;
+            line-height: 1.3em;
         }}
 
         /* URW Logo header */

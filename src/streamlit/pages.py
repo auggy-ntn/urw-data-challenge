@@ -9,8 +9,15 @@ from src.streamlit.components import (
     render_retail_mix_chart,
     render_store_ranking,
     render_swap_predictor,
+    render_trend_section,
 )
-from src.streamlit.data_loading import get_mall_kpis, get_top_stores, load_malls
+from src.streamlit.data_loading import (
+    get_category_forecasts,
+    get_category_trends,
+    get_mall_kpis,
+    get_top_stores,
+    load_malls,
+)
 from src.streamlit.looks import URW_COLORS
 import streamlit as st
 
@@ -70,6 +77,23 @@ def page_main_dashboard():
             )
         with col3:
             render_kpi_card("Avg. Revenue (M€)", revenue_str, None)
+
+    st.divider()
+
+    # Global Category Trends
+    with st.spinner("Loading trend data..."):
+        historical_trends = get_category_trends(mall_id=None)  # Global
+        forecast_trends = get_category_forecasts(mall_id=None)  # Global
+
+    if not historical_trends.empty:
+        render_trend_section(
+            historical_df=historical_trends,
+            forecast_df=forecast_trends,
+            historical_horizon="1_month",
+            forecast_horizon="1_month",
+            title="Category Trends (All Malls)",
+            columns=6,
+        )
 
     st.divider()
 
@@ -154,6 +178,24 @@ def page_mall_detail():
             )
         with col3:
             render_kpi_card("Revenue (M€)", revenue_str, None)
+
+    st.divider()
+
+    # Mall-specific Category Trends
+    with st.spinner("Loading trend data..."):
+        historical_trends = get_category_trends(mall_id=mall_id)
+        forecast_trends = get_category_forecasts(mall_id=mall_id)
+
+    if not historical_trends.empty:
+        render_trend_section(
+            historical_df=historical_trends,
+            forecast_df=forecast_trends,
+            historical_horizon="1_month",
+            forecast_horizon="1_month",
+            title=f"Category Trends ({mall['name']})",
+            columns=6,
+            show_sample_warning=True,
+        )
 
     st.divider()
 
