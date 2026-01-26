@@ -1,8 +1,7 @@
-**XHEC Eleven Data Science Challenge: Plane Taxi Time Forecasting**
+**XHEC Data Science Challenge: Mall Analytics for Unibail-Rodamco-Westfield**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- Build & CI Status -->
-![CI](https://github.com/auggy-ntn/eleven-data-challenge/actions/workflows/ci.yaml/badge.svg?event=push)
+![CI](https://github.com/auggy-ntn/urw-data-challenge/actions/workflows/ci.yaml/badge.svg?event=push)
 
 <!-- Code Quality & Tools -->
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
